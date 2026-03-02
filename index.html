@@ -288,12 +288,40 @@ header::after{content:'';position:absolute;bottom:-1px;left:0;width:220px;height
 /* MOBILE SIDEBAR TOGGLE */
 .sb-tog{display:none}
 @media(max-width:768px){
+  /* --- Sidebar overlay behaviour --- */
   .sb{position:absolute;top:0;left:0;height:100%;z-index:600;transform:translateX(-100%);transition:transform .22s cubic-bezier(.4,0,.2,1);box-shadow:4px 0 18px rgba(0,0,0,.5)}
   .sb.open{transform:translateX(0)}
   .sb-overlay{display:none;position:absolute;inset:0;z-index:599;background:rgba(0,0,0,.45)}
   .sb-overlay.open{display:block}
-  .sb-tog{display:flex;align-items:center;justify-content:center;position:absolute;top:10px;left:10px;z-index:598;width:34px;height:34px;background:var(--sf);border:1px solid var(--bdl);color:var(--txb);cursor:pointer;font-size:15px;transition:background .12s;flex-shrink:0}
+  /* z-index ABOVE sidebar so button is always clickable */
+  .sb-tog{display:flex;align-items:center;justify-content:center;position:absolute;top:10px;left:10px;z-index:701;width:34px;height:34px;background:var(--sf);border:1px solid var(--bdl);color:var(--txb);cursor:pointer;font-size:15px;transition:background .12s;flex-shrink:0}
   .sb-tog:hover{background:var(--sf2)}
+
+  /* --- Header --- */
+  header{height:auto;flex-wrap:wrap;padding:6px 10px;gap:4px 10px}
+  header::after{width:100%}
+  .hsep,.hsub,.hdate{display:none}
+  .navtabs{margin-left:0;order:3;width:100%;overflow-x:auto;gap:0;padding-bottom:1px;-webkit-overflow-scrolling:touch}
+  .navtab{flex-shrink:0;font-size:8px;padding:5px 10px}
+  .hright{gap:6px}
+  .btn-add{font-size:10px;padding:4px 9px}
+
+  /* --- Detail panel full-width --- */
+  .dp{width:100%;left:0}
+
+  /* --- Detail panel inner grids collapse to single col --- */
+  .sgrid{grid-template-columns:1fr}
+  .pcg{grid-template-columns:1fr}
+
+  /* --- Planner buy-vs-build stacks vertically --- */
+  .bvb-grid{grid-template-columns:1fr}
+
+  /* --- Procurement table: horizontal scroll --- */
+  .table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .proc-table{min-width:580px}
+
+  /* --- Engine cards single column --- */
+  .engine-cards-wrap{grid-template-columns:1fr !important}
 }
 </style>
 </head>
@@ -405,7 +433,7 @@ header::after{content:'';position:absolute;bottom:-1px;left:0;width:220px;height
       <div class="pv-title">Equipment Procurement Tracker</div>
       <div class="pv-sub">Capital items required for custom facility build-out · Vendors · Lead times · Status</div>
       <div style="font-size:11.5px;color:var(--txd);margin-bottom:18px;line-height:1.7">Covers the key capital equipment items needed to stand up an owned BWA test facility. Cost and lead time are ROM estimates; get vendor quotes before committing. <strong style="color:var(--txb)">Click any cost or lead time to edit. Click status to cycle. Use + Add to create new rows.</strong></div>
-      <table class="proc-table" id="proc-table">
+      <div class="table-scroll"><table class="proc-table" id="proc-table">
         <thead><tr>
           <th style="width:22%">Item</th>
           <th style="width:14%">Vendor(s)</th>
@@ -415,7 +443,7 @@ header::after{content:'';position:absolute;bottom:-1px;left:0;width:220px;height
           <th>Notes</th>
         </tr></thead>
         <tbody id="proc-tbody"></tbody>
-      </table>
+      </table></div>
     </div>
   </div><!-- end procurement view -->
 
@@ -424,7 +452,7 @@ header::after{content:'';position:absolute;bottom:-1px;left:0;width:220px;height
     <div class="pv-scroll">
       <div class="pv-title">Engine-Capable Sites</div>
       <div class="pv-sub">Sites with arc-jet, sled track, shock tunnel, or full FBCC engine test capability — filtered from the full site database</div>
-      <div id="engine-cards" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px;padding:15px 0"></div>
+      <div id="engine-cards" class="engine-cards-wrap" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px;padding:15px 0"></div>
       <div style="margin-top:20px;padding:16px;border:1px solid var(--bdl);border-radius:4px;background:var(--sf2)">
         <div class="pv-sh" style="margin-bottom:8px">Recommended Sequence</div>
         <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
