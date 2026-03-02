@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Site Notes — FBCC Test Facility</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@400;500;600;700&family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<style>
+:root{
+  --bg:#0b0b0c;--sf:#141416;--sf2:#1b1b1e;--sf3:#222226;
+  --bd:#272729;--bdl:#343438;
+  --tx:#c4bfb5;--txd:#a09b91;--txb:#f0ebe0;--txf:#b0aaa0;
+  --or:#e8620a;--or2:#f07428;--or3:#c44e00;
+  --ord:rgba(232,98,10,.10);--orb:rgba(232,98,10,.28);--org:rgba(232,98,10,.18);
+  --am:#d09028;--amd:rgba(208,144,40,.10);--amb:rgba(208,144,40,.28);
+  --bl:#5a8db5;--bld:rgba(90,141,181,.10);--blb:rgba(90,141,181,.28);
+  --rd:#c04040;--rdd:rgba(192,64,64,.12);
+  --gr:#3d9e6e;--grd:rgba(61,158,110,.10);--grb:rgba(61,158,110,.28);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Barlow',sans-serif;font-weight:300;background:var(--bg);color:var(--tx);height:100vh;overflow:hidden;display:flex;flex-direction:column;font-size:13px}
+
+/* HEADER */
+header{height:52px;background:var(--sf);border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:16px;padding:0 20px;flex-shrink:0;position:relative;z-index:100}
+header::after{content:'';position:absolute;bottom:-1px;left:0;width:220px;height:1px;background:var(--or)}
+.hmark{width:26px;height:26px;background:var(--or);clip-path:polygon(50% 0%,93% 25%,93% 75%,50% 100%,7% 75%,7% 25%);flex-shrink:0}
+.hwm{font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:700;color:var(--txb);letter-spacing:.05em;text-transform:uppercase}
+.hwm span{color:var(--or)}
+.hsep{width:1px;height:18px;background:var(--bdl)}
+.hsub{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--txd);letter-spacing:.08em;text-transform:uppercase}
+.hright{margin-left:auto;display:flex;align-items:center;gap:10px}
+.hdate{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--txf);letter-spacing:.05em}
+.btn-add{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:5px 14px;background:var(--ord);border:1px solid var(--orb);color:var(--or);cursor:pointer;transition:all .15s}
+.btn-add:hover{background:var(--org);border-color:var(--or)}
+
+/* LAYOUT */
+.main{position:relative;flex:1;overflow:hidden;display:flex}
+
+/* SIDEBAR */
+.sb{width:290px;flex-shrink:0;background:var(--sf);border-right:1px solid var(--bd);display:flex;flex-direction:column;overflow:hidden}
+.sbtop{padding:11px 14px 9px;border-bottom:1px solid var(--bd);flex-shrink:0}
+.frow{display:flex;gap:5px;flex-wrap:wrap}
+.fb{font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.07em;text-transform:uppercase;padding:4px 8px;background:transparent;border:1px solid var(--bdl);color:var(--txd);cursor:pointer;transition:all .12s}
+.fb:hover,.fb.aa{border-color:var(--bdl);color:var(--tx)}
+.fb.ag{border-color:var(--or);color:var(--or);background:var(--ord)}
+.fb.am{border-color:var(--am);color:var(--am);background:var(--amd)}
+.fb.al{border-color:var(--bl);color:var(--bl);background:var(--bld)}
+.fb.ap{border-color:var(--gr);color:var(--gr);background:var(--grd)}
+.slist{overflow-y:auto;flex:1;padding:5px 0}
+.sc{padding:9px 13px;border-bottom:1px solid var(--bd);cursor:pointer;transition:background .1s;display:flex;align-items:flex-start;gap:9px}
+.sc:hover{background:var(--sf2)}
+.sc.act{background:var(--sf3)}
+.scdot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:5px}
+.scb{flex:1;min-width:0}
+.scn{font-size:12px;font-weight:500;color:var(--txb);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:1px}
+.scl{font-family:'IBM Plex Mono',monospace;font-size:8px;color:var(--txd)}
+.sct{font-family:'IBM Plex Mono',monospace;font-size:7px;letter-spacing:.05em;text-transform:uppercase;padding:1px 5px;border:1px solid;flex-shrink:0;margin-top:2px}
+.scact{display:flex;gap:3px;opacity:0;transition:opacity .12s;flex-shrink:0;align-self:center}
+.sc:hover .scact{opacity:1}
+.ab{width:20px;height:20px;display:flex;align-items:center;justify-content:center;border:1px solid var(--bdl);background:transparent;cursor:pointer;color:var(--txd);font-size:10px;transition:all .1s}
+.ab:hover{border-color:var(--tx);color:var(--txb)}
+.ab.dl:hover{border-color:var(--rd);color:var(--rd);background:var(--rdd)}
+
+/* MAP */
+.mwrap{position:relative;flex:1}
+#map{width:100%;height:100%}
+.leaflet-tile{filter:saturate(.3) brightness(.95)}
+.leg{position:absolute;bottom:18px;left:14px;z-index:1000;background:rgba(11,11,12,.93);border:1px solid var(--bdl);padding:11px 13px;backdrop-filter:blur(6px)}
+.legt{font-family:'IBM Plex Mono',monospace;font-size:8.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--txb);font-weight:600;margin-bottom:7px}
+.legr{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--txd);margin-bottom:3px}
+.legr:last-child{margin-bottom:0}
+.legd{width:7px;height:7px;border-radius:50%}
+
+/* DETAIL PANEL */
+.dp{position:absolute;top:0;right:0;width:428px;height:100%;background:var(--sf);border-left:1px solid var(--bd);overflow-y:auto;z-index:999;transform:translateX(100%);transition:transform .24s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column}
+.dp.vis{transform:translateX(0)}
+.dph{padding:16px 17px 12px;border-bottom:1px solid var(--bd);flex-shrink:0;background:var(--sf2);position:relative}
+.dph::after{content:'';position:absolute;bottom:0;left:0;width:160px;height:1px;background:var(--or)}
+.dptop{display:flex;align-items:flex-start;gap:9px;margin-bottom:7px}
+.dpn{font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:700;color:var(--txb);flex:1;line-height:1.2;text-transform:uppercase;letter-spacing:.03em}
+.dpbtns{display:flex;gap:4px;flex-shrink:0}
+.dpedt{font-family:'IBM Plex Mono',monospace;font-size:8px;padding:4px 9px;border:1px solid var(--bdl);background:transparent;color:var(--txd);cursor:pointer;transition:all .12s;letter-spacing:.04em;text-transform:uppercase}
+.dpedt:hover{border-color:var(--or);color:var(--or);background:var(--ord)}
+.dpcls{width:25px;height:25px;display:flex;align-items:center;justify-content:center;border:1px solid var(--bdl);background:transparent;cursor:pointer;color:var(--txd);font-size:12px;transition:all .12s}
+.dpcls:hover{border-color:var(--tx);color:var(--txb)}
+.eng-card{background:var(--sf2);border:1px solid var(--bdl);padding:16px;border-radius:4px}
+.eng-card-name{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:700;color:var(--txb);margin-bottom:3px}
+.eng-card-loc{font-size:10px;color:var(--txd);margin-bottom:10px}
+.eng-card-cap{font-size:10.5px;color:var(--tx);line-height:1.6;margin-bottom:10px}
+.eng-card-cap b{color:var(--or);font-weight:600}
+.eng-card-meta{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.eng-card-btn{font-family:'IBM Plex Mono',monospace;font-size:8px;padding:4px 10px;border:1px solid var(--bdl);background:transparent;color:var(--txd);cursor:pointer;letter-spacing:.04em;text-transform:uppercase;transition:all .12s}
+.eng-card-btn:hover{border-color:var(--or);color:var(--or)}
+.eng-step{display:flex;align-items:center;gap:6px;padding:8px 12px;background:var(--sf);border:1px solid var(--bdl);border-radius:3px}
+.eng-sn{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:700;color:var(--or);min-width:14px}
+.eng-st{font-size:11px;font-weight:600;color:var(--txb)}
+.eng-sc{font-size:9.5px;color:var(--txd);margin-left:4px}
+.eng-arr{color:var(--txd);font-size:16px;font-weight:300}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--or);color:#fff;font-family:'IBM Plex Mono',monospace;font-size:10px;padding:8px 18px;border-radius:3px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:10000;letter-spacing:.04em}
+.dpmeta{display:flex;align-items:center;gap:9px}
+.dploc{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--txd)}
+.dpctag{font-family:'IBM Plex Mono',monospace;font-size:7px;letter-spacing:.07em;text-transform:uppercase;padding:2px 6px;border:1px solid}
+.dpbody{padding:0 17px 28px}
+
+/* Detail sections */
+.dps{margin-top:18px}
+.dpsl{font-family:'IBM Plex Mono',monospace;font-size:8.5px;text-transform:uppercase;letter-spacing:.12em;color:var(--txb);font-weight:700;margin-bottom:9px;padding-bottom:5px;border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:7px}
+.dpsl::before{content:'';width:2px;height:9px;background:var(--or);display:inline-block;flex-shrink:0}
+.dpsum{font-size:12.5px;line-height:1.78;color:var(--tx)}
+.sgrid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--bd)}
+.sc2{background:var(--sf2);padding:8px 9px}
+.sk{font-family:'IBM Plex Mono',monospace;font-size:8.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--txb);font-weight:600;margin-bottom:2px}
+.sv{font-size:11px;color:var(--txb);line-height:1.4}
+/* removed: .rtb .rtlbl .rtbr .rtbar .rtfill .rtnum .rtd — ratings table deleted */
+.supgrid{display:flex;flex-direction:column;gap:1px;background:var(--bd)}
+.supc{background:var(--sf2);padding:9px 11px}
+.supk{font-family:'IBM Plex Mono',monospace;font-size:8.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--txb);font-weight:600;margin-bottom:5px;display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.badge{display:inline-block;padding:1px 4px;font-family:'IBM Plex Mono',monospace;font-size:7px;letter-spacing:.03em;border:1px solid}
+.bg{background:rgba(232,98,10,.14);color:var(--or2);border-color:rgba(232,98,10,.3)}
+.bo{background:rgba(208,144,40,.12);color:var(--am);border-color:rgba(208,144,40,.3)}
+.bp{background:rgba(192,64,64,.12);color:#b87070;border-color:rgba(192,64,64,.3)}
+.supv{display:flex;flex-direction:column;gap:3px}
+.supv-item{font-size:11px;color:var(--tx);line-height:1.55;padding-left:14px;position:relative}
+.supv-item::before{content:'–';position:absolute;left:2px;top:0;color:var(--txd);font-family:'IBM Plex Mono',monospace}
+.pcg{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.pclbl{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin-bottom:7px}
+.pclbl.pros{color:var(--or)}
+.pclbl.cons{color:var(--rd)}
+.pci{font-size:11px;line-height:1.65;color:var(--tx);margin-bottom:5px;padding-left:10px;position:relative}
+.pci::before{content:'';position:absolute;left:0;top:8px;width:3px;height:3px}
+.pros .pci::before{background:rgba(232,98,10,.65)}
+.cons .pci::before{background:rgba(192,64,64,.55)}
+.stnote{font-size:11.5px;line-height:1.78;color:var(--tx);background:var(--sf2);border-left:2px solid var(--or);padding:11px 13px;font-style:italic}
+.sum-list{display:flex;flex-direction:column;gap:5px}
+.sum-item{font-size:12px;line-height:1.72;color:var(--tx);padding:7px 11px 7px 24px;position:relative}
+.sum-item::before{content:'◆';position:absolute;left:7px;top:8px;color:var(--or);font-size:7px;opacity:.8}
+.note-list{display:flex;flex-direction:column;gap:4px}
+.note-item{font-size:11.5px;line-height:1.65;color:var(--tx);padding:6px 10px 6px 22px;position:relative;background:var(--sf2);border-left:2px solid var(--or)}
+.note-item::before{content:'→';position:absolute;left:7px;top:6px;color:var(--or);font-size:10px;font-family:'IBM Plex Mono',monospace}
+
+/* MODAL */
+.mover{position:fixed;inset:0;background:rgba(0,0,0,.76);z-index:2000;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);opacity:0;pointer-events:none;transition:opacity .2s}
+.mover.vis{opacity:1;pointer-events:all}
+.modal{background:var(--sf);border:1px solid var(--bdl);width:640px;max-width:96vw;max-height:90vh;overflow-y:auto;display:flex;flex-direction:column;position:relative}
+.modal::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--or),var(--or3),transparent);z-index:1}
+.mhdr{padding:17px 19px 13px;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.mtitle{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;color:var(--txb);text-transform:uppercase;letter-spacing:.04em}
+.mx{width:27px;height:27px;display:flex;align-items:center;justify-content:center;border:1px solid var(--bdl);background:transparent;cursor:pointer;color:var(--txd);font-size:13px}
+.mx:hover{border-color:var(--tx);color:var(--txb)}
+.mbody{padding:18px;display:flex;flex-direction:column;gap:13px}
+.mfoot{padding:13px 18px;border-top:1px solid var(--bd);display:flex;justify-content:flex-end;gap:8px;flex-shrink:0}
+.frow2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.fg{display:flex;flex-direction:column;gap:4px}
+.fg.full{grid-column:1/-1}
+.flbl{font-family:'IBM Plex Mono',monospace;font-size:8px;text-transform:uppercase;letter-spacing:.07em;color:var(--txd)}
+.fi,.fta,.fsel{background:var(--sf2);border:1px solid var(--bdl);color:var(--txb);padding:7px 9px;font-family:'Barlow',sans-serif;font-size:12px;outline:none;transition:border-color .12s;width:100%}
+.fi:focus,.fta:focus,.fsel:focus{border-color:var(--or)}
+.fta{resize:vertical;min-height:72px;line-height:1.6}
+.fsel option{background:var(--sf2)}
+.fstitle{font-family:'IBM Plex Mono',monospace;font-size:8.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--txb);font-weight:600;padding-bottom:5px;border-bottom:1px solid var(--bd);margin-top:2px}
+/* removed: .rirow .rilbl .rinum — ratings inputs deleted */
+.bpri{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:7px 16px;background:var(--ord);border:1px solid var(--orb);color:var(--or);cursor:pointer;transition:all .15s}
+.bpri:hover{background:var(--org);border-color:var(--or)}
+.bsec{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:500;letter-spacing:.05em;text-transform:uppercase;padding:7px 13px;background:transparent;border:1px solid var(--bdl);color:var(--txd);cursor:pointer;transition:all .15s}
+.bsec:hover{border-color:var(--tx);color:var(--tx)}
+.bdel{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:500;letter-spacing:.05em;text-transform:uppercase;padding:7px 13px;background:var(--rdd);border:1px solid rgba(192,64,64,.3);color:var(--rd);cursor:pointer;margin-right:auto;transition:all .15s}
+.bdel:hover{background:rgba(192,64,64,.2);border-color:rgba(192,64,64,.6)}
+.liw{display:flex;flex-direction:column;gap:4px}
+.liitem{display:flex;gap:4px;align-items:flex-start}
+.liitem textarea{flex:1;background:var(--sf2);border:1px solid var(--bdl);color:var(--txb);padding:5px 7px;font-family:'Barlow',sans-serif;font-size:11px;resize:none;outline:none;min-height:40px;line-height:1.5}
+.liitem textarea:focus{border-color:var(--or)}
+.libt{width:21px;height:21px;display:flex;align-items:center;justify-content:center;border:1px solid var(--bdl);background:transparent;cursor:pointer;color:var(--txd);font-size:10px;flex-shrink:0;margin-top:2px;transition:all .1s}
+.libt:hover{border-color:var(--tx);color:var(--txb)}
+.libt.rm:hover{border-color:var(--rd);color:var(--rd)}
+.adli{font-family:'IBM Plex Mono',monospace;font-size:8px;color:var(--txd);cursor:pointer;padding:2px 0;background:none;border:none;letter-spacing:.03em}
+.adli:hover{color:var(--or)}
+.pcin{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+/* NAV TABS */
+.navtabs{display:flex;gap:1px;margin-left:18px}
+.navtab{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.08em;text-transform:uppercase;padding:5px 14px;background:transparent;border:1px solid transparent;color:var(--txd);cursor:pointer;transition:all .15s;border-bottom:none}
+.navtab:hover{color:var(--tx)}
+.navtab.active{background:var(--sf2);border-color:var(--bdl);color:var(--or);border-bottom:1px solid var(--sf2)}
+
+/* PANEL VIEWS - map view always rendered, others hidden */
+.panel-view{position:absolute;inset:0;display:none;flex-direction:column;overflow:hidden}
+.panel-view.active{display:flex}
+#view-map{display:flex!important;flex-direction:row!important}
+#view-map:not(.active){visibility:hidden;pointer-events:none}
+
+/* LEAD TIME + PHASE CHIPS */
+.sc-chips{display:flex;gap:4px;margin-top:4px;flex-wrap:wrap}
+.chip{font-family:'IBM Plex Mono',monospace;font-size:7px;letter-spacing:.04em;padding:1px 5px;border:1px solid}
+.chip-phase1{color:#5a8db5;border-color:#5a8db522;background:rgba(90,141,181,.10)}
+.chip-phase2{color:#d09028;border-color:#d0902822;background:rgba(208,144,40,.10)}
+.chip-phase3{color:#c04040;border-color:#c0404022;background:rgba(192,64,64,.10)}
+.chip-green{color:#3d9e6e;border-color:#3d9e6e22;background:rgba(61,158,110,.10)}
+.chip-amber{color:#d09028;border-color:#d0902822;background:rgba(208,144,40,.10)}
+.chip-red{color:#c04040;border-color:#c0404022;background:rgba(192,64,64,.10)}
+.chip-cost1{color:#64615a;border-color:#34323022;background:rgba(52,50,48,.15)}
+.chip-cost2{color:#c4bfb5;border-color:#34323022;background:rgba(52,50,48,.15)}
+.chip-cost3{color:#d09028;border-color:#d0902822;background:rgba(208,144,40,.10)}
+.chip-cost4{color:#c04040;border-color:#c0404022;background:rgba(192,64,64,.10)}
+
+/* TEST OBJECTIVE SECTION */
+.tobox{background:var(--sf2);padding:11px 13px;border-left:2px solid var(--bl)}
+.torow{display:flex;flex-direction:column;gap:3px;margin-bottom:10px}
+.torow:last-child{margin-bottom:0}
+.tok{font-family:'IBM Plex Mono',monospace;font-size:8.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--txb);font-weight:600;margin-bottom:2px}
+.tov{font-size:11.5px;color:var(--tx);line-height:1.6}
+.tov.metric{color:var(--or);font-family:'IBM Plex Mono',monospace;font-size:10px}
+
+/* PLANNER PANEL */
+.pv-scroll{flex:1;overflow-y:auto;padding:22px}
+.pv-title{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;color:var(--txb);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px}
+.pv-sub{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--txd);letter-spacing:.06em;margin-bottom:22px}
+.pv-section{margin-bottom:28px}
+.pv-sh{font-family:'IBM Plex Mono',monospace;font-size:8.5px;text-transform:uppercase;letter-spacing:.12em;color:var(--txb);font-weight:700;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:7px}
+.pv-sh::before{content:'';width:2px;height:9px;background:var(--or);display:inline-block;flex-shrink:0}
+
+/* BUILD VS BUY */
+.bvb-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.bvb-col{background:var(--sf2);padding:14px}
+.bvb-col-title{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-bottom:12px}
+.bvb-col-title.buy{color:var(--bl)}
+.bvb-col-title.build{color:var(--or)}
+.cap-row{display:flex;align-items:center;gap:8px;margin-bottom:7px;padding:6px 8px;background:var(--sf3);cursor:pointer;transition:background .1s;border:1px solid transparent}
+.cap-row:hover{background:var(--sf);border-color:var(--bdl)}
+.cap-row.selected{background:var(--sf);border-color:var(--orb)}
+.cap-check{width:13px;height:13px;border:1px solid var(--bdl);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:8px;color:var(--or)}
+.cap-check.on{background:var(--ord);border-color:var(--or)}
+.cap-label{flex:1;font-size:11px;color:var(--tx)}
+.cap-cost{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--txd)}
+.bvb-total{margin-top:12px;padding:10px;border-top:1px solid var(--bd);display:flex;justify-content:space-between;align-items:baseline}
+.bvb-total-label{font-family:'IBM Plex Mono',monospace;font-size:8px;text-transform:uppercase;letter-spacing:.08em;color:var(--txd)}
+.bvb-total-val{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:700;color:var(--txb)}
+.bvb-note{font-size:10.5px;color:var(--txd);line-height:1.6;margin-top:8px}
+.bvb-verdict{background:var(--sf2);border-left:2px solid var(--or);padding:10px 13px;margin-top:14px;font-size:11.5px;color:var(--tx);line-height:1.7}
+
+/* PHASE TIMELINE */
+.timeline{position:relative;padding-left:20px}
+.tl-line{position:absolute;left:6px;top:8px;bottom:8px;width:1px;background:var(--bd)}
+.tl-phase{margin-bottom:16px;position:relative}
+.tl-dot{position:absolute;left:-17px;top:5px;width:8px;height:8px;border-radius:50%;border:1px solid}
+.tl-phase-label{font-family:'IBM Plex Mono',monospace;font-size:8px;text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px}
+.tl-sites{display:flex;flex-direction:column;gap:3px}
+.tl-site{font-size:11px;color:var(--tx);padding:5px 9px;background:var(--sf2);border-left:2px solid;display:flex;justify-content:space-between;align-items:center}
+.tl-site-name{color:var(--txb);font-weight:500}
+.tl-site-obj{font-size:10px;color:var(--txd)}
+
+/* PROCUREMENT PANEL */
+.proc-table{width:100%;border-collapse:collapse}
+.proc-table th{font-family:'IBM Plex Mono',monospace;font-size:7px;text-transform:uppercase;letter-spacing:.1em;color:var(--txf);text-align:left;padding:6px 10px;border-bottom:1px solid var(--bd);white-space:nowrap}
+.proc-table td{font-size:11px;padding:8px 10px;border-bottom:1px solid var(--bd);vertical-align:top;color:var(--tx);line-height:1.5}
+.proc-table tr:hover td{background:var(--sf2)}
+.proc-item{font-weight:500;color:var(--txb)}
+.proc-vendor{color:var(--txd);font-size:10px;font-family:'IBM Plex Mono',monospace}
+.proc-cost{font-family:'IBM Plex Mono',monospace;font-size:10px;white-space:nowrap}
+.proc-lead{font-family:'IBM Plex Mono',monospace;font-size:10px;white-space:nowrap}
+.proc-status{font-family:'IBM Plex Mono',monospace;font-size:7px;letter-spacing:.05em;text-transform:uppercase;padding:2px 6px;border:1px solid;white-space:nowrap}
+.st-todo{color:var(--txd);border-color:var(--bdl)}
+.st-active{color:var(--am);border-color:rgba(208,144,40,.3);background:rgba(208,144,40,.08)}
+.st-done{color:var(--gr);border-color:rgba(61,158,110,.3);background:rgba(61,158,110,.08)}
+.proc-note{font-size:10px;color:var(--txd);line-height:1.5}
+.proc-editable{cursor:text;border-bottom:1px dashed var(--bd);transition:border-color .2s}
+.proc-editable:hover{border-color:var(--bl);color:var(--bl)}
+.proc-item.proc-editable,.proc-vendor.proc-editable,.proc-note.proc-editable{border-bottom:1px dashed transparent}
+.proc-item.proc-editable:hover,.proc-vendor.proc-editable:hover,.proc-note.proc-editable:hover{border-color:var(--bl)}
+.proc-add-row:hover td{background:var(--sf2)!important;opacity:1!important}
+.cap-row.add-row:hover{background:var(--sf2)!important;opacity:1!important}
+.cap-del{font-size:10px;color:var(--txd);cursor:pointer;opacity:0;transition:opacity .15s;padding:2px 5px;margin-left:auto}
+.cap-row:hover .cap-del{opacity:.6}
+.cap-del:hover{opacity:1!important;color:#c04040}
+.proc-cat-hdr td{background:var(--sf3);font-family:'IBM Plex Mono',monospace;font-size:7px;text-transform:uppercase;letter-spacing:.1em;color:var(--txf);padding:5px 10px;border-bottom:1px solid var(--bd)}
+
+/* confirm */
+.cover{position:fixed;inset:0;background:rgba(0,0,0,.76);z-index:3000;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);opacity:0;pointer-events:none;transition:opacity .2s}
+.cover.vis{opacity:1;pointer-events:all}
+.cbox{background:var(--sf);border:1px solid var(--bdl);padding:22px;width:350px}
+.ctitle{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;color:var(--txb);text-transform:uppercase;letter-spacing:.04em;margin-bottom:7px}
+.cmsg{font-size:12px;color:var(--txd);line-height:1.65;margin-bottom:16px}
+.cbtns{display:flex;gap:8px;justify-content:flex-end}
+::-webkit-scrollbar{width:3px;height:3px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--bdl)}
+</style>
+</head>
+<body>
+<header>
+  <div class="hmark"></div>
+  <div class="hwm">Eos <span>Atomics</span></div>
+  <div class="hsep"></div>
+  <div class="hsub">FBCC Test Facility Intelligence</div>
+  <div class="navtabs">
+    <button class="navtab active" onclick="switchView('map',this)">Map</button>
+    <button class="navtab" onclick="switchView('planner',this)">Planner</button>
+    <button class="navtab" onclick="switchView('procurement',this)">Procurement</button>
+    <button class="navtab" onclick="switchView('engine',this)">Engine-Capable</button>
+  </div>
+  <div class="hright">
+    <span class="hdate" id="hdate"></span>
+    <button class="btn-add" onclick="exportJSON()" style="background:transparent;border-color:var(--bdl);color:var(--txd)">↓ Export</button>
+    <button class="btn-add" onclick="openModal('add')">+ Add Site</button>
+  </div>
+</header>
+<div class="main">
+  <!-- MAP VIEW -->
+  <div id="view-map" class="panel-view active" style="flex-direction:row">
+  <div class="sb">
+    <div class="sbtop">
+      <div class="frow">
+        <button class="fb aa" onclick="setF('all',this)">All <span id="cnt"></span></button>
+        <button class="fb" onclick="setF('greenfield',this)">Greenfield</button>
+        <button class="fb" onclick="setF('military',this)">Military</button>
+        <button class="fb" onclick="setF('lab',this)">Lab / Uni</button>
+        <button class="fb" onclick="setF('partner',this)">Partners</button>
+      </div>
+    </div>
+    <div class="slist" id="slist"></div>
+  </div>
+  <div class="mwrap">
+    <div id="map"></div>
+    <div class="leg">
+      <div class="legt">Category</div>
+      <div class="legr"><div class="legd" style="background:#e8620a"></div>Greenfield / Industrial</div>
+      <div class="legr"><div class="legd" style="background:#d09028"></div>Decommissioned Military</div>
+      <div class="legr"><div class="legd" style="background:#5a8db5"></div>National Lab / University</div>
+      <div class="legr"><div class="legd" style="background:#3d9e6e"></div>Partners / Vendors</div>
+    </div>
+    <div class="dp" id="dp">
+      <div class="dph">
+        <div class="dptop">
+          <div class="dpn" id="dpn"></div>
+          <div class="dpbtns">
+            <button class="dpedt" onclick="copySummary()">📋 Copy</button>
+            <button class="dpedt" onclick="editCur()">Edit</button>
+            <button class="dpcls" onclick="closeDp()">✕</button>
+          </div>
+        </div>
+        <div class="dpmeta"><div class="dploc" id="dploc"></div><div class="dpctag" id="dptag"></div></div>
+      </div>
+      <div class="dpbody" id="dpbody"></div>
+    </div>
+  </div>
+  </div><!-- end map view -->
+
+  <!-- PLANNER VIEW -->
+  <div id="view-planner" class="panel-view" style="overflow-y:auto;flex-direction:column">
+    <div class="pv-scroll">
+      <div class="pv-title">Test Program Planner</div>
+      <div class="pv-sub">Build-vs-buy estimator · Phase timeline · Access lead times</div>
+
+      <div class="pv-section">
+        <div class="pv-sh">Build vs. Buy — Capability Cost Estimator</div>
+        <div style="font-size:11.5px;color:var(--txd);margin-bottom:14px;line-height:1.7">Select the test capabilities you need. The estimator compares cumulative access cost via the partner/lab network against standing up owned infrastructure. All figures are rough order-of-magnitude. <strong style="color:var(--txb)">Click any cost to edit. Use + Add to create new rows.</strong></div>
+        <div class="bvb-grid">
+          <div class="bvb-col">
+            <div class="bvb-col-title buy">Access Network Cost</div>
+            <div style="font-size:10px;color:var(--txd);margin-bottom:10px">Estimated total spend to access each capability via partners, universities, or national labs over a 24-month Phase 1–2 program.</div>
+            <div id="buy-caps"></div>
+            <div class="bvb-total"><span class="bvb-total-label">Est. 24-mo total</span><span class="bvb-total-val" id="buy-total">$0</span></div>
+            <div class="bvb-note">Includes beam time, fab runs, characterization, and travel. Does not include personnel or IP agreement legal costs.</div>
+          </div>
+          <div class="bvb-col">
+            <div class="bvb-col-title build">Custom Build Capex</div>
+            <div style="font-size:10px;color:var(--txd);margin-bottom:10px">Estimated one-time capital cost to own and operate each capability in-house at a custom facility.</div>
+            <div id="build-caps"></div>
+            <div class="bvb-total"><span class="bvb-total-label">Est. capex total</span><span class="bvb-total-val" id="build-total">$0</span></div>
+            <div class="bvb-note">Excludes facility lease/build, utilities, and ongoing operating costs. Amortized over 10 years this looks very different.</div>
+          </div>
+        </div>
+        <div class="bvb-verdict" id="bvb-verdict">Select capabilities above to see the comparison.</div>
+      </div>
+
+      <div class="pv-section">
+        <div class="pv-sh">Phase Timeline — Access Lead Times</div>
+        <div style="font-size:11.5px;color:var(--txd);margin-bottom:14px;line-height:1.7">Organized by when each site realistically becomes available, given lead times. Sites in red are gating items — delays cascade.</div>
+        <div class="timeline" id="timeline-render"></div>
+      </div>
+
+      <div class="pv-section">
+        <div class="pv-sh">Access Lead Time by Site</div>
+        <div id="leadtime-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1px;background:var(--bd)"></div>
+      </div>
+    </div>
+  </div><!-- end planner view -->
+
+  <!-- PROCUREMENT VIEW -->
+  <div id="view-procurement" class="panel-view" style="overflow-y:auto;flex-direction:column">
+    <div class="pv-scroll">
+      <div class="pv-title">Equipment Procurement Tracker</div>
+      <div class="pv-sub">Capital items required for custom facility build-out · Vendors · Lead times · Status</div>
+      <div style="font-size:11.5px;color:var(--txd);margin-bottom:18px;line-height:1.7">Covers the key capital equipment items needed to stand up an owned BWA test facility. Cost and lead time are ROM estimates; get vendor quotes before committing. <strong style="color:var(--txb)">Click any cost or lead time to edit. Click status to cycle. Use + Add to create new rows.</strong></div>
+      <table class="proc-table" id="proc-table">
+        <thead><tr>
+          <th style="width:22%">Item</th>
+          <th style="width:14%">Vendor(s)</th>
+          <th style="width:9%">Est. Cost</th>
+          <th style="width:9%">Lead Time</th>
+          <th style="width:8%">Status</th>
+          <th>Notes</th>
+        </tr></thead>
+        <tbody id="proc-tbody"></tbody>
+      </table>
+    </div>
+  </div><!-- end procurement view -->
+
+  <!-- ENGINE-CAPABLE VIEW -->
+  <div id="view-engine" class="panel-view" style="overflow-y:auto;flex-direction:column">
+    <div class="pv-scroll">
+      <div class="pv-title">Engine-Capable Sites</div>
+      <div class="pv-sub">Sites with arc-jet, sled track, shock tunnel, or full FBCC engine test capability — filtered from the full site database</div>
+      <div id="engine-cards" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px;padding:15px 0"></div>
+      <div style="margin-top:20px;padding:16px;border:1px solid var(--bdl);border-radius:4px;background:var(--sf2)">
+        <div class="pv-sh" style="margin-bottom:8px">Recommended Sequence</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+          <div class="eng-step"><span class="eng-sn">1</span><span class="eng-st">Caltech T5</span><span class="eng-sc">Subscale 12mm die, ~$5k/day</span></div>
+          <div class="eng-arr">→</div>
+          <div class="eng-step"><span class="eng-sn">2</span><span class="eng-st">Holloman Sled</span><span class="eng-sc">Mach 5+ inlet conditions</span></div>
+          <div class="eng-arr">→</div>
+          <div class="eng-step"><span class="eng-sn">3</span><span class="eng-st">AEDC Arc-Jet</span><span class="eng-sc">Full 200mm array, 20 MW/m²</span></div>
+          <div class="eng-arr">→</div>
+          <div class="eng-step"><span class="eng-sn">4</span><span class="eng-st">West Texas</span><span class="eng-sc">Full FBCC engine, 100+ MW</span></div>
+        </div>
+      </div>
+    </div>
+  </div><!-- end engine view -->
+
+</div>
+<div class="mover" id="mover">
+  <div class="modal">
+    <div class="mhdr"><div class="mtitle" id="mtitle">Add Site</div><button class="mx" onclick="closeModal()">✕</button></div>
+    <div class="mbody" id="mbody"></div>
+    <div class="mfoot">
+      <button class="bdel" id="mdelbt" onclick="startDel()" style="display:none">Delete Site</button>
+      <button class="bsec" onclick="closeModal()">Cancel</button>
+      <button class="bpri" onclick="saveSite()">Save Site</button>
+    </div>
+  </div>
+</div>
+<div class="cover" id="cover">
+  <div class="cbox">
+    <div class="ctitle">Delete this site?</div>
+    <div class="cmsg" id="cmsg"></div>
+    <div class="cbtns"><button class="bsec" onclick="closeCover()">Cancel</button><button class="bdel" onclick="doDelete()">Delete</button></div>
+  </div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<div class="toast" id="toast"></div>
+<script>
+const CAT={greenfield:{color:'#e8620a',label:'Greenfield'},military:{color:'#d09028',label:'Military'},lab:{color:'#5a8db5',label:'Lab/Uni'},partner:{color:'#3d9e6e',label:'Partner'}};
+const STORAGE_KEY='aerofuse_fbcc_v7';
+
+// Metadata: phase, leadMonths, costTier (1=$<10k, 2=$10–100k, 3=$100k–1M, 4=$1M+), testObjective
+const SITE_META={"1":{"phase":1,"leadMonths":1,"costTier":2,"testObjective":{"article":"Subscale 12×12mm SiC BWA die; scaled ΔP fixture","objective":"Iterative 900keV irradiation via UCLA Ion Beam Lab; validate ΔP stand to 3 bar","metric":"Die survives 3.2×10¹⁷ cm⁻² fluence; seal holds at 1.6 atm static"}},"2":{"phase":3,"leadMonths":6,"costTier":4,"testObjective":{"article":"Full 200mm BWA array; integrated FBCC engine section","objective":"Full-scale engine test at ERCOT power; combined ΔP + beam + NaK loop operation","metric":"Sustained FBCC operation >60 sec at Mach 5 equivalent conditions"}},"3":{"phase":2,"leadMonths":4,"costTier":3,"testObjective":{"article":"NaK-77 cooling loop assembly; full BWA structural module","objective":"Validate NaK-77 cooling loop at 570°C under beam load; test radiation clearance protocols","metric":"NaK loop sustains 570°C ±20°C for 30 min; no coolant leak; radiation events cleared per protocol"}},"4":{"phase":2,"leadMonths":12,"costTier":3,"testObjective":{"article":"Full BWA array at flight-representative scale; sled-mount test article","objective":"Sled track test at Mach 8.6 for BWA inlet conditions; 900keV irradiation via NMSU pelletron","metric":"BWA survives Mach 5 equivalent dynamic pressure; post-test SEM shows no micropane failure"}},"5":{"phase":2,"leadMonths":9,"costTier":2,"testObjective":{"article":"NaK-77 cooling loop; BWA structural subassembly with Inconel host","objective":"NaK-77 loop validation under WSTF hypergolic safety protocols; ΔP testing with federal clearance","metric":"Cooling loop operates at 570°C for 1 hr; completes ΔP test at 1.6 atm without safety event"}},"6":{"phase":1,"leadMonths":2,"costTier":2,"testObjective":{"article":"12×12mm and 50×50mm SiC BWA die; beamline fixture in SAC hangar","objective":"Extended CW beam campaigns at NYPA power rates; a-SiN micropane arrays from Cornell CNF","metric":"a-SiN die survives 10¹⁷ cm⁻² at 900keV; NYPA cost per campaign <$15k"}},"7":{"phase":3,"leadMonths":18,"costTier":4,"testObjective":{"article":"Full-scale BWA array; high-fluence beam dump test articles","objective":"High-fluence irradiation events and open beam dump testing in Bonneville geometry","metric":"Beam dump events completed without off-site radiation signature; facility power infrastructure operational"}},"8":{"phase":1,"leadMonths":14,"costTier":2,"testObjective":{"article":"a-SiN and SiC micropane test articles fabricated at MESA","objective":"LPCVD/PECVD a-SiN fabrication; Z-machine beam characterization at MeV scale; aerogel co-development","metric":"MESA-fabricated a-SiN matches design spec (100nm ±5nm, stress <100 MPa); first WFO deliverable in hand"}},"9":{"phase":2,"leadMonths":18,"costTier":3,"testObjective":{"article":"BWA material stack: SiC window + aerogel + support structure","objective":"pRad proton radiography to image beam penetration through BWA stack at flight-relevant energies","metric":"pRad data validates ZBL Monte Carlo stopping range model within 15%"}},"10":{"phase":1,"leadMonths":1,"costTier":1,"testObjective":{"article":"12×12mm SiC BWA die in T5 test section fixture","objective":"Thermalization validation: BWA die in T5 flow at 1340K, 1.6 atm; Bragg curve shift measurement","metric":"Measured ion stopping range in T5 flow matches ZBL model prediction within 20%; 30% density feedback shift confirmed"}},"11":{"phase":1,"leadMonths":0,"costTier":1,"testObjective":{"article":"Existing ΔP test stand ; next-gen 25×25mm BWA die arrays","objective":"Push ΔP stand beyond 1 bar; test larger aperture arrays; iterate on micropane geometry","metric":"25×25mm array sustains 1.6 atm for 10 min; failure mode identified if failed; next-iteration data generated"}},"12":{"phase":3,"leadMonths":30,"costTier":4,"testObjective":{"article":"Full-scale 200mm BWA array on Inconel host with NaK loop","objective":"Arc-jet thermal validation at 20 MW/m²; combined thermal + irradiation + ΔP in single campaign","metric":"BWA survives 20 MW/m² arc-jet for 60 sec; FEA thermal model validated; no structural failure"}},"13":{"phase":1,"leadMonths":4,"costTier":1,"testObjective":{"article":"Published BWA test results + Phase I proposal package","objective":"SBIR Phase I award from Propulsion and/or Directed Energy directorate","metric":"Phase I award received; AFRL program manager relationship established; Phase II proposal in progress"}},"14":{"phase":1,"leadMonths":0,"costTier":1,"testObjective":{"article":"Custom SiN membrane array dies to Aerofuse spec","objective":"Commercial SiN membrane procurement on faster timeline than university cleanrooms","metric":"First prototype batch delivered within 8 weeks; dimensions within 5% of spec; pressure tested to 1 bar"}},"15":{"phase":1,"leadMonths":0,"costTier":1,"testObjective":{"article":"UHTC aerogel coated SiC BWA die samples","objective":"Al₂O₃ ALD or PVD coating on 100nm SiC membranes; sputtering protection layer characterization","metric":"Coating applied without membrane failure; XPS confirms Al₂O₃ chemistry; sputtering rate reduced ≥10×"}},"16":{"phase":2,"leadMonths":2,"costTier":3,"testObjective":{"article":"NEC tandem pelletron system specification document","objective":"Define accelerator spec for future owned facility; identify beam time at installed NEC customer sites","metric":"Accelerator spec complete and costed; ≥2 NEC customer sites identified with available beam time"}},"17":{"phase":1,"leadMonths":0,"costTier":1,"testObjective":{"article":"Post-irradiation BWA die batch (irradiated at NMSU, UdeM, or UCLA)","objective":"SEM + AFM + RBS characterization of irradiation damage; quantify H+ implantation depth in SiC","metric":"AFM confirms surface damage <5nm for fluence <10¹⁶ cm⁻²; RBS H+ depth profile matches SRIM prediction"}}};
+
+const DEFAULTS=[{"id":1,"cat":"greenfield","name":"Mojave Air & Space Port","loc":"Kern County, CA","lat":35.059,"lng":-118.152,"summary":["The most mature commercial aerospace test corridor in the US — 25+ resident tenants, established culture of experimental programs, and no novel permitting required for high-energy propulsion work. The infrastructure mindset here is already calibrated for exactly this kind of project.","What makes it compelling for BWA specifically is the density of the LA basin supply chain. Everything the BWA design requires — DRIE fabrication for SiC micropanes, 900keV proton irradiation, high-vacuum hardware, aerogel precursors — is within a 90-minute drive. That kind of proximity makes weekly iterative testing practical in a way it simply isn't at more remote sites.","The closest beam source is regional university ion beam facilities (90–120 min), which runs protons in the right energy range. SoCal university accelerator facilities are within practical driving range for iterative beam testing. Caltech Kavli does DRIE/LPCVD/PECVD on-campus and is a natural research partner. Caltech T5 shock tunnel is also 90 minutes away for thermalization validation on the same trip.","The main things to watch: water is genuinely scarce out there, which matters for NaK-77 quench systems. And the grid will need an upgrade if CW beam operation above ~10 MW is ever in scope."],"specs":{"Acreage":{"val":"~3,000 ac + BLM desert","score":"good"},"Grid":{"val":"115kV / AV1000; ~30–50 MW","score":"ok"},"Pop. Buffer":{"val":"5 mi to Mojave (4,200)","score":"good"},"Exhaust":{"val":"Open desert; NW prevailing winds","score":"good"},"Access":{"val":"Private lease, Kern County","score":"good"},"Land Cost":{"val":"$8–18k/acre","score":"ok"}},"supply":{"Proton/Ion Beam (900keV+)":{"val":"UCLA Ion Beam Lab ~90 min — 900keV proton capability for iterative BWA irradiation","score":"good"},"SiC/SiN DRIE + SOI Wafer Fab":{"val":"Caltech Kavli DRIE on-campus, LPCVD/PECVD a-SiN; UCSB Nanofab ~120 mi; LA commercial fabs (IQE, MACOM) for SOI supply","score":"good"},"High-Vacuum / Conflat Systems":{"val":"Edwards/Pfeiffer/Agilent LA distribution ~60 mi; Nor-Cal/MDC conflat flanges and turbo pumps local","score":"good"},"NaK-77 + Inconel Machining":{"val":"Alfa Aesar/Sigma-Aldrich LA basin for NaK-77; aerospace corridor Inconel shops; inert-atmosphere handling feasible with facility setup","score":"ok"},"UHTC Aerogel Coating":{"val":"Cabot Aerogel + Sigma-Aldrich LA basin; sol-gel precursors abundant; spin-on application feasible at Caltech","score":"good"},"SEM/AFM Post-Irradiation":{"val":"Caltech and UCLA SEM/AFM for post-irradiation surface characterization — sputtering damage verification on BWA samples","score":"good"},"Thermalization Validation":{"val":"No shock tunnel on-site but Caltech T5 90 min away — combine beam irradiation + thermalization test same trip","score":"good"},"ΔP Test Infrastructure":{"val":"Pressure vessels locally available; can build vacuum-to-1.6atm stand replicating the ΔP test stand at larger scale","score":"good"}},"phase":1,"leadMonths":1,"costTier":2,"testObjective":{"article":"Subscale 12×12mm SiC BWA die; scaled ΔP fixture","objective":"Iterative irradiation campaigns at 900keV via UCLA Ion Beam Lab; build and validate ΔP stand to 3 bar","metric":"BWA die survives 3.2×10¹⁷ cm⁻² fluence with no structural failure; seal holds at 1.6 atm"},"pros":["SoCal university accelerator access within 2 hr — iterative BWA sample testing practical","Caltech Kavli DRIE on-campus: LPCVD/PECVD for a-SiN as specified for a-SiN fabrication; natural research partner","LA basin industrial corridor: every supply chain need within 90 mi","FAA Part 101 experimental test waivers and high-energy test culture routine"],"cons":["Water scarce — critical for NaK-77 emergency quench and cooling loops","No nuclear-adjacent regulatory framework; radiation characterization adds permitting time","Power upgrade may be needed for full-scale CW ion beam (>10 MW)"],"note":["Best Phase 1 BWA development site — move subscale BWA irradiation here from UMD after the 3×3mm proof-of-concept","Replicate the ΔP test stand at Mojave scale: Caltech for fab, UCLA for beam, LA basin for hardware supply","Grid upgrade planning needed now if CW beam >10 MW is anticipated before Phase 2"],"url":"https://www.mojaveairport.com/"},{"id":2,"cat":"greenfield","name":"West Texas High Plains","loc":"Reeves / Ward Counties, TX","lat":31.1,"lng":-103.5,"summary":["Flat Permian Basin land at $1.5–4k/acre, ERCOT 138kV with 100+ MW of accessible headroom, and >40 miles of clearance in every direction. This is not an early-stage BWA site — it's the logical permanent facility for a full-scale FBCC integrated engine test once the subscale architecture is proven elsewhere.","The oilfield industrial culture here is genuinely underrated for this program. High-pressure vessels, liquid chemical handling, pneumatic systems — these are embedded in the local workforce and supply chain in Midland/Odessa in a way you don't find near research campuses. That matters when you're running a real test program rather than a lab experiment.","The honest gap is irradiation. No proton accelerator within 270 miles, no DRIE fab locally. All of that has to run at Mojave or Plattsburgh. West Texas only makes sense once the BWA design is mature enough to build at scale and you need the power and space to test the whole engine.","The land acquisition timeline is worth starting now even if operational use is 3–5 years out. West Texas permitting is fast and pragmatic; getting the land is the easy part."],"specs":{"Acreage":{"val":"10,000–50,000 ac tracts","score":"good"},"Grid":{"val":"ERCOT 138kV; 100+ MW accessible","score":"good"},"Pop. Buffer":{"val":">40 mi to Pecos (14k pop)","score":"good"},"Exhaust":{"val":"Flat terrain; excellent diffusion","score":"good"},"Access":{"val":"Private purchase; TX permitting","score":"good"},"Land Cost":{"val":"$1.5–4k/acre","score":"good"}},"supply":{"Proton/Ion Beam (900keV+)":{"val":"UT Austin accelerator ~270 mi; TAMU cyclotron ~350 mi — all irradiation requires shipping test articles","score":"poor"},"SiC/SiN DRIE + SOI Wafer Fab":{"val":"Austin commercial fabs ~270 mi; batch logistics manageable but slow turnaround","score":"ok"},"High-Vacuum / Conflat Systems":{"val":"No local specialty vacuum dealers; freight from Houston ~300 mi; slow service","score":"ok"},"NaK-77 + Inconel Machining":{"val":"Permian Basin industrial chemical distributors handle hazmat NaK; oilfield machining culture does Inconel","score":"ok"},"UHTC Aerogel Coating":{"val":"Midland/Odessa Sigma-Aldrich distribution; adequate for on-site sol-gel processing","score":"good"},"SEM/AFM Post-Irradiation":{"val":"No local advanced microscopy; ship samples to UT Austin or TAMU","score":"poor"},"Thermalization Validation":{"val":"No high-enthalpy capability nearby; build or ship to AEDC/Caltech for Bragg curve work","score":"poor"},"ΔP Test Infrastructure":{"val":"Oilfield pressure vessel infrastructure directly applicable; flanges and pneumatics stocked locally in Midland","score":"good"}},"pros":["ERCOT 138kV: 100+ MW headroom — only greenfield site that powers a full-scale FBCC rig","Oilfield pressure vessel culture: high-pressure plenums, liquid chemical systems embedded locally","$1.5–4k/acre land, sub-12 mo permitting: lowest barrier to permanent owned facility",">40 mi clearance all directions: ideal radiation and exhaust geometry"],"cons":["No ion beam accelerator within 270 mi — all irradiation requires shipping die","No DRIE fab locally; batch trips to Austin","Precision beamline servicing difficult at 300+ mi from tech hubs"],"note":["Begin BLM or fee land acquisition now while Phase 1 runs at Mojave or Plattsburgh — lead time matters","Not for early BWA work — designated Phase 2 permanent facility for integrated engine test","ERCOT 138kV is the deciding factor; no other greenfield site matches it for full-scale power draw"]},{"id":3,"cat":"greenfield","name":"Stennis Space Center EUL Zone","loc":"Hancock County, MS","lat":30.37,"lng":-89.65,"summary":["Stennis has something no other site on this list can offer: a 125,000-acre federally-mandated acoustic buffer that gives 24/7 unrestricted testing clearance by law. For radiation-adjacent or beam-dump events that would be prohibited within 3 miles of a city, this matters enormously.","The NASA WFO program is the most accessible federal entry point for a small private company. Stennis has taken on commercial tenants before and the EUL structure is well-understood. The path to getting on-site is clearer here than at any military facility.","The NaK-77 case is what actually sets this site apart technically. The hypergolic propellant handling culture at Stennis — N2O4, MMH, IRFNA — is the closest procedural analogue to liquid sodium-potassium anywhere in the US. The FEA in the BWA design shows NaK-77 at 570°C in Inconel cooling channels; Stennis people have already thought carefully about liquid metal safety at those temperatures, just with different fluids.","The Gulf Coast petrochemical corridor gives excellent NaK-77 precursor access. The weaknesses are real — humidity and salt air are hard on SiC/SiN beam windows over time, hurricane season is an operational disruption, and there's no DRIE cleanroom nearby."],"specs":{"Acreage":{"val":"EUL plots in 125k-ac buffer zone","score":"good"},"Grid":{"val":"Entergy 115kV; NASA HV ~30–80 MW","score":"good"},"Pop. Buffer":{"val":"125k-ac buffer = 24/7 testing clearance","score":"good"},"Exhaust":{"val":"Proven flame trench systems","score":"good"},"Access":{"val":"NASA Enhanced Use Lease (EUL)","score":"good"},"Cost":{"val":"~$50–200k/yr lease","score":"ok"}},"supply":{"Proton/Ion Beam (900keV+)":{"val":"Tulane/LSU research accelerators ~90 mi; TAMU cyclotron via freight; not convenient","score":"ok"},"SiC/SiN DRIE + SOI Wafer Fab":{"val":"Tulane microfab ~90 mi; Louisiana Tech ~250 mi; batch logistics manageable but not fast","score":"ok"},"High-Vacuum / Conflat Systems":{"val":"New Orleans and Houston vacuum dealers; Edwards service present; Stennis vacuum on-site","score":"good"},"NaK-77 + Inconel Machining":{"val":"Gulf Coast petrochemical corridor: best NaK-77 supply chain in US — BASF/Sigma-Aldrich Houston; NASA propellant handling culture directly applicable","score":"good"},"UHTC Aerogel Coating":{"val":"Gulf Coast chemical distributors; excellent aerogel precursor availability","score":"good"},"SEM/AFM Post-Irradiation":{"val":"Tulane and LSU SEM/AFM ~90 mi; adequate for periodic characterization","score":"ok"},"Thermalization Validation":{"val":"No high-enthalpy facility nearby","score":"poor"},"ΔP Test Infrastructure":{"val":"NASA high-pressure propellant systems use same conflat/pressure vessel hardware; DI water on-site","score":"good"}},"pros":["NaK-77 safety culture: NASA hypergolic handling closest US regulatory analogue to liquid sodium-potassium — directly applicable to FEA cooling system","Federal clearance buffer eliminates largest regulatory obstacle for radiation-adjacent beam-dump events","Gulf Coast petrochemical supply chain: best availability for NaK-77 precursors, aerogel chemicals, specialty gases","High-pressure propellant infrastructure maps to BWA vacuum-to-pressure differential architecture"],"cons":["Gulf humidity and salt air: corrosion risk for SiC/SiN beam windows and beamline optics — serious concern","Hurricane evacuation risk for permanent facilities","No local DRIE cleanroom"],"note":["Primary NaK-77 cooling loop validation site — initiate NASA EUL or WFO discussions now","FEA shows NaK-77 at 570°C in Inconel — Stennis hypergolic culture is the closest procedural match in the US","Federal buffer valuable for radiation-adjacent events that would be precluded at Mojave or Plattsburgh"],"url":"https://www.nasa.gov/stennis/"},{"id":4,"cat":"military","name":"Holloman AFB + Adjacent BLM","loc":"Otero County, NM","lat":32.85,"lng":-106.1,"summary":["Holloman has the world's longest rocket sled track — ~51,000 feet, Mach 8.6 capable — with the AEDC 704th Test Group already on-site. That combination is unique globally and becomes decisive once the BWA needs to be tested at flight-representative inlet conditions (Mach 5 = 1.6 atm, 1340K ).","The reason it ranks so high for near-term work is the New Mexico cluster. NMSU Las Cruces has a tandem pelletron accelerator 45 minutes away that matches the 900keV irradiation setup from the development program almost exactly. Sandia MESA is about 4 hours away (~215 mi) with world-class LPCVD/PECVD/DRIE capability for SiC/SiN micropane fabrication. LANL is 160 miles for plasma physics and NaK-77 materials expertise. The strongest fab–irradiate–characterize cluster accessible from any military site, though Sandia requires batch trips.","The access path is the main complexity. This is an active USAF base, so civilian commercial use requires a DoD CRADA agreement and cleared personnel. The BLM land adjacent to the base needs a separate lease. Both processes are manageable but they run in parallel and take time.","Worth initiating the CRADA process even if Plattsburgh or Mojave runs Phase 1. Holloman becomes the natural Phase 2 military testing site once the subscale design is validated."],"specs":{"Sled Track":{"val":"~51,000 ft, Mach 8.6 capable","score":"good"},"Adjacent Land":{"val":"BLM unlimited; WSMR adjacent","score":"good"},"Grid":{"val":"EP Electric 115kV; ~30–60 MW","score":"good"},"Pop. Buffer":{"val":"~7 mi to Alamogordo (31k)","score":"ok"},"Access":{"val":"CRADA + BLM lease combo","score":"ok"},"Proximity":{"val":"NMSU 45 mi; Sandia ~215 mi; LANL 160 mi","score":"good"}},"supply":{"Proton/Ion Beam (900keV+)":{"val":"NMSU tandem pelletron ~45 mi — matches 900keV setup; Sandia ion beam ~215 mi via WFO","score":"good"},"SiC/SiN DRIE + SOI Wafer Fab":{"val":"Sandia MESA LPCVD/PECVD/DRIE ~215 mi (~4 hr) — world-class; SiC/SiN micropane arrays at 50-500um pitch via WFO","score":"good"},"High-Vacuum / Conflat Systems":{"val":"El Paso vacuum equipment ~90 mi; ABQ ~215 mi; Sandia vacuum via WFO","score":"ok"},"NaK-77 + Inconel Machining":{"val":"Sandia/LANL NaK handling from SNAP program; ABQ chemical distributors ~215 mi; Inconel via ABQ or El Paso aerospace shops","score":"good"},"UHTC Aerogel Coating":{"val":"ABQ industrial chemical ~215 mi; Sandia materials science for aerogel co-development","score":"ok"},"SEM/AFM Post-Irradiation":{"val":"NMSU SEM/AFM ~45 mi; Sandia ~215 mi; post-irradiation characterization accessible","score":"good"},"Thermalization Validation":{"val":"Sled track enables flight-velocity BWA testing at Mach 5 representative inlet conditions (1.6 atm, 1340K) — unique","score":"good"},"ΔP Test Infrastructure":{"val":"Holloman test culture handles high-pressure; El Paso pressure hardware ~90 mi","score":"good"}},"pros":["NMSU pelletron (45 mi): closest proton beam to any military site; matches 900keV irradiation setup","Sandia MESA DRIE (~215 mi): world-class LPCVD/PECVD for a-SiN and SiC — batch logistics, not same-day","Sled track at Mach 8.6: BWA testing at flight-representative inlet conditions — nobody else does this","NM cluster: NMSU (45 mi), WSMR adjacent, LANL (160 mi), Sandia (~215 mi) — regional not same-day"],"cons":["Active USAF base — civilian access requires DoD agreement and cleared personnel","Desert water logistics for NaK-77 cooling","Dual-track permitting (DoD CRADA + BLM lease) adds complexity"],"note":["Initiate DoD CRADA + BLM lease in parallel — dual-track adds time; start both now","Target Sandia MESA WFO as the fabrication partner; NMSU as the irradiation partner — NMSU is 45 min; Sandia requires ~4 hr batch trips","Sled track at Mach 8.6 is the Phase 2+ differentiator for flight-representative inlet testing; not needed for subscale BWA work"],"url":"https://www.holloman.af.mil/"},{"id":5,"cat":"military","name":"White Sands / NASA WSTF","loc":"Dona Ana County, NM","lat":32.5,"lng":-106.47,"summary":["NASA White Sands Test Facility runs the Work-for-Others program, which is specifically designed for private companies to access federal test infrastructure without the full bureaucratic weight of a primary government contract. For Aerofuse at its current stage, this is the most accessible on-ramp to federal test facilities of any site on this map.","The NMSU Las Cruces pelletron is 35 miles away — the closest proton accelerator to any range-based facility. That proximity, combined with WSTF's own high-vacuum and propellant test infrastructure, makes iterative BWA irradiation campaigns genuinely practical here.","The NaK-77 cooling system is the specific technical use case for WSTF. Their hypergolic propellant handling protocols — N2O4, monomethylhydrazine, inhibited red fuming nitric acid — are the closest procedural match to liquid sodium-potassium at 570°C that exists anywhere in US federal infrastructure. This is where you validate the FEA cooling loop design from the thermal FEA.","Lead time is the main catch. Army range scheduling runs 6–18 months ahead, and dual-authority coordination between NASA WFO and the Army range adds administrative friction. This needs to be initiated now to be useful for 2026–2027 test campaigns."],"specs":{"Range":{"val":"3,200 sq mi restricted airspace","score":"good"},"WSTF":{"val":"Propulsion testing; hazmat; hypervelocity","score":"good"},"Grid":{"val":"Existing base; ~20–50 MW near WSTF","score":"ok"},"Pop. Buffer":{"val":"Entire range = permanent exclusion zone","score":"good"},"Access":{"val":"NASA WFO / Army range agreement","score":"ok"},"Proximity":{"val":"Holloman 7 mi; NMSU 35 mi; Sandia ~215 mi","score":"good"}},"supply":{"Proton/Ion Beam (900keV+)":{"val":"NMSU pelletron ~35 mi — most accessible beam to any range site","score":"good"},"SiC/SiN DRIE + SOI Wafer Fab":{"val":"Sandia MESA ~215 mi via WFO; NMSU materials lab for characterization","score":"good"},"High-Vacuum / Conflat Systems":{"val":"WSTF vacuum systems for propulsion testing; shared use via WFO feasible","score":"good"},"NaK-77 + Inconel Machining":{"val":"WSTF hypergolic safety culture (N2O4, MMH, IRFNA) closest US analogue to NaK-77 protocols","score":"good"},"UHTC Aerogel Coating":{"val":"ABQ chemical distributors ~215 mi; El Paso ~90 mi; WSTF materials expertise available","score":"ok"},"SEM/AFM Post-Irradiation":{"val":"NMSU and WSTF materials characterization; adequate for iterative SEM/AFM","score":"good"},"Thermalization Validation":{"val":"WSTF hypervelocity guns create high-enthalpy conditions; not exact thermalization test but relevant","score":"ok"},"ΔP Test Infrastructure":{"val":"WSTF differential pressure systems directly applicable; existing conflat flanges and vacuum-to-pressure interfaces","score":"good"}},"pros":["NMSU pelletron (35 mi): closest beam to any range; regular iterative BWA irradiation feasible","WSTF NaK-77 case: hypergolic propellant protocols map directly to liquid sodium-potassium safety","Permanent federal exclusion zone eliminates population clearance concern for beam dump and thermalization","NASA WFO most accessible federal entry point for small company"],"cons":["Army/DoD range scheduling: 6-18 mo lead; military schedule conflicts","Long-term power planning required for high-draw ion beam","Dual-authority (NASA WFO + Army range) adds admin coordination"],"note":["Initiate WFO discussions now — 6–18 mo lead time means acting today secures 2026–2027 access","Primary use case: NaK-77 cooling loop validation with WSTF hypergolic safety infrastructure","Pair with NMSU for irradiation and Sandia for DRIE; treat WSTF as the NaK-77 test node in the NM cluster"],"url":"https://www.nasa.gov/white-sands-test-facility/"},{"id":6,"cat":"military","name":"Plattsburgh AFB (ABRC)","loc":"Plattsburgh, NY","lat":44.65,"lng":-73.47,"summary":["Former SAC bomber base with 3,400 acres and a clear redevelopment mandate. The ABRC is actively soliciting industrial tenants, which means the path to a long-term lease is genuinely straightforward — no DoD CRADA negotiation, no Army scheduling queue. Just a commercial lease with a favorable landlord.","The two things that make this the strongest Phase 1 east coast option: NYPA hydroelectric power at ~3–4 ¢/kWh (roughly 3× cheaper than the US grid average, which matters a lot if extended CW ion beam campaigns are in the plan), and SAC-era hardened hangars that provide ready-made radiation-shielded beamline test bays at zero construction cost.","Université de Montréal in Montreal has a tandem pelletron accelerator 65 miles away that matches the 900keV irradiation setup from the development program. Cornell NanoScale Facility is about 3 hours south — one of the best academic DRIE/LPCVD cleanrooms in the country, exactly the process the design requires for a-SiN deposition.","The 3-mile proximity to Plattsburgh city is the real constraint. High-fluence radiation events and open beam dump work are effectively off the table. Contained indoor irradiation in the hardened hangars is fine; anything with a meaningful external radiation footprint has to move to Holloman or WSMR."],"specs":{"Use":{"val":"Former SAC bomber wing","score":"good"},"Acreage":{"val":"3,450 (5,000 total PARC) acres","score":"good"},"Grid":{"val":"NYPA hydro 115kV; 50-100 MW; ~3-4 c/kWh","score":"good"},"Pop. Buffer":{"val":"~3 mi to Plattsburgh city (19k)","score":"poor"},"Status":{"val":"Plattsburgh ABRC — active redevelopment","score":"good"},"Runway":{"val":"11,759-ft commercial runway","score":"good"}},"supply":{"Proton/Ion Beam (900keV+)":{"val":"UdeM pelletron (Montreal, ~65 mi) — matches 900keV setup; UVM and RPI also nearby","score":"good"},"SiC/SiN DRIE + SOI Wafer Fab":{"val":"Cornell CNF ~3 hr: top academic DRIE/LPCVD in US; SOI wafer supply via east coast fabs","score":"good"},"High-Vacuum / Conflat Systems":{"val":"Albany and Montreal Edwards/Pfeiffer/Leybold; east coast well-served","score":"good"},"NaK-77 + Inconel Machining":{"val":"Cornell and RPI nuclear engineering alkali metal handling; Albany/Montreal suppliers; northeast Inconel shops","score":"good"},"UHTC Aerogel Coating":{"val":"Albany/Montreal industrial chemical; northeast aerogel chemistry supported","score":"good"},"SEM/AFM Post-Irradiation":{"val":"UdeM, Cornell, RPI all have SEM/AFM; excellent characterization network within 3 hr","score":"good"},"Thermalization Validation":{"val":"No high-enthalpy shock tunnel nearby; ship die to T5 or AEDC for Bragg curve validation","score":"poor"},"ΔP Test Infrastructure":{"val":"Albany industrial equipment; Cornell vacuum service; can build larger ΔP stand exceeding current 1 bar","score":"good"}},"pros":["UdeM pelletron (65 mi): matches 900keV irradiation setup — east coast NMSU equivalent","Cornell CNF (~3 hr): LPCVD/PECVD for a-SiN as specified; top US academic cleanroom","NYPA hydro ~3-4 c/kWh: extended CW beam campaigns feasible — 3x cheaper than grid average","SAC hardened hangars: zero construction cost for radiation shielding"],"cons":["3 mi to city: severely limits high-fluence radiation events — contained indoor only","Cold climate thermal cycling challenges for SiC/SiN membrane integrity","Distance from NM cluster; no thermalization test capability nearby"],"note":["Strongest Phase 1 east coast site for the UMD team — UdeM pelletron + Cornell DRIE + NYPA power covers the three core development needs","Transition high-fluence and high-energy events to Holloman or WSMR; contained indoor irradiation work only at Plattsburgh","ABRC actively soliciting industrial tenants — NY aerospace incentive programs available; begin lease discussions"],"url":"https://www.flyplattsburgh.com/"},{"id":7,"cat":"military","name":"Wendover AFAF — Bonneville","loc":"West Wendover, NV/UT","lat":40.724,"lng":-114.03,"summary":["WWII Manhattan Project crew training base surrounded by the Bonneville Salt Flats — extensive uninhabited desert and salt flat clearance in all directions. That geometry is genuinely unmatched for high-fluence beam dump events. The isolation here isn't just convenient, it's the kind of clearance that makes otherwise-impossible test configurations feasible.","The WWII bunkers are the other major asset. Thick reinforced concrete walls provide radiation shielding that would cost millions to build new elsewhere. Some structures are under NPS historic preservation review, which adds process around modifications, but the shielding value is real and immediate.","The Manhattan Project heritage creates a natural DOE/NNSA relationship angle. That institutional connection is worth cultivating early, especially as the program moves toward D-He3 or pB11 fuels that require nuclear licensing — Wendover has the kind of history that makes those conversations easier.","The power situation is the hard gate. There is essentially no grid infrastructure here; getting meaningful power to the site requires a new substation estimated at $8–20M. No testing happens until that problem is solved, which is why this is a Phase 3 facility rather than an early-stage one."],"specs":{"Use":{"val":"WWII Manhattan Project crew training","score":"good"},"Acreage":{"val":"~2,000 ac base + 50 mi salt flat","score":"good"},"Grid":{"val":"Rocky Mountain Power; new substation $8–20M","score":"poor"},"Pop. Buffer":{"val":"1 mi to Wendover/West Wendover (~5,600 combined); 50+ mi flat","score":"good"},"Status":{"val":"City of Wendover + partial NPS","score":"ok"},"Heritage":{"val":"Manhattan Project — NNSA engagement favorable","score":"good"}},"supply":{"Proton/Ion Beam (900keV+)":{"val":"U of Utah ion beam (SLC, ~120 mi); BYU neutron; periodic campaigns manageable","score":"ok"},"SiC/SiN DRIE + SOI Wafer Fab":{"val":"U of Utah nanofab and SLC cleanrooms ~120 mi; batch fab acceptable","score":"ok"},"High-Vacuum / Conflat Systems":{"val":"SLC vacuum distributors ~120 mi; manageable for bulk delivery","score":"ok"},"NaK-77 + Inconel Machining":{"val":"SLC suppliers ~120 mi; U of Utah nuclear engineering alkali metal handling; SLC Inconel shops","score":"ok"},"UHTC Aerogel Coating":{"val":"SLC industrial chemical ~120 mi; regular supply feasible","score":"ok"},"SEM/AFM Post-Irradiation":{"val":"U of Utah SEM/AFM ~120 mi; adequate for periodic campaigns","score":"ok"},"Thermalization Validation":{"val":"No high-enthalpy facility nearby","score":"poor"},"ΔP Test Infrastructure":{"val":"SLC pressure vessel suppliers ~120 mi; bunkers usable as primary containment","score":"ok"}},"pros":["Bunkers: reinforced concrete = zero-cost radiation shielding for beamline cells","Bonneville Salt Flat: ~50 mi natural beam-stop clearance; only site where high-fluence beam dump unconstrained","Manhattan Project heritage: DOE/NNSA pathway for D-He3 or pB11 aneutronic fuel programs","BLM acquisition for range extension straightforward"],"cons":["Power grid absent: $8-20M capital before any testing — hard gate","All supply chain ~120 mi from SLC; no local support","Some WWII structures under historic preservation — modification constraints"],"note":["Initiate SLC power corridor study now — $8–20M substation is the hard gate; no testing until it is solved","Phase 3 permanent high-energy site for beam dump and high-fluence events precluded at Plattsburgh, Mojave, or Stennis","Engage DOE/NNSA on Manhattan Project heritage connection; positions Wendover for future aneutronic fuel licensing"]},{"id":8,"cat":"lab","name":"Sandia National Laboratories","loc":"Albuquerque, NM","lat":35.047,"lng":-106.544,"summary":["Sandia is probably the single most important partnership to establish for BWA development. The MESA campus does LPCVD and PECVD for amorphous silicon nitride at production scale — those are the exact deposition processes the design requires for a-SiN micropane fabrication. This isn't an approximation; it's the actual process, done by people who do it every day.","The Z-machine gives Sandia a pulsed power capability at 80 TW peak that is relevant to MeV-scale beam characterization — the energy range of D-He3 fusion products (3.6–14.7 MeV). The Mach 14 aerodynamics tunnel covers high-enthalpy flow conditions. And the Materials Science division has direct UHTC ceramic and aerogel synthesis expertise, making them a natural co-developer for the sputtering protection layer the development roadmap identifies as future work.","NaK handling is another genuine strength. Sandia has operational experience with sodium-potassium from SNAP-era fast reactor programs. That institutional knowledge directly maps to validating the FEA cooling system design from the thermal FEA.","The access structure is Work-for-Others or CRADA — both well-established for private companies. CRADA negotiation typically takes 12–18 months, and some MESA and Z-machine work requires L/Q clearances, which adds a separate timeline for Aerofuse personnel. Start the process now."],"specs":{"MESA Campus":{"val":"DRIE, LPCVD, PECVD, SOI — world-class microsystems fab","score":"good"},"Z-Machine":{"val":"80 TW peak / 26 MJ stored energy","score":"good"},"Hypersonic Cap.":{"val":"Mach 14 aerodynamics tunnel","score":"good"},"Access":{"val":"Work-for-Others (WFO) / CRADA","score":"ok"},"IP Framework":{"val":"Negotiable under CRADA","score":"ok"},"Personnel":{"val":"~14,000 staff; 2,700+ PhDs","score":"good"}},"supply":{"Proton/Ion Beam (900keV+)":{"val":"Sandia own ion beam and accelerator capabilities, Z-machine diagnostics; covers BWA-range irradiation directly","score":"good"},"SiC/SiN DRIE + SOI Wafer Fab":{"val":"MESA LPCVD/PECVD: exact processes for a-SiN as specified; DRIE for SiC micropanes at 50-500um pitch; SOI processing on-site","score":"good"},"High-Vacuum / Conflat Systems":{"val":"Vacuum at every scale from UHV beamlines to Z-machine","score":"good"},"NaK-77 + Inconel Machining":{"val":"NaK handling from SNAP program; materials science for liquid metal compatibility; Inconel fabrication","score":"good"},"UHTC Aerogel Coating":{"val":"Materials Science division: direct UHTC ceramic and aerogel synthesis — natural co-developer for sputtering protection","score":"good"},"SEM/AFM Post-Irradiation":{"val":"World-class microscopy and surface analysis; AFM for sputtering quantification","score":"good"},"Thermalization Validation":{"val":"Mach 14 tunnel approaches combustor conditions; Z-machine diagnostics applicable at MeV energies for D-He3 products","score":"good"},"ΔP Test Infrastructure":{"val":"High-vacuum/high-pressure interfaces routine for Z-machine and beamline diagnostics","score":"good"}},"pros":["MESA LPCVD/PECVD: a-SiN via LPCVD or PECVD as specified — MESA does this at production scale","Z-machine diagnostics applicable to BWA beam characterization at MeV energies in D-He3 range (3.6-14.7 MeV)","Aerogel co-development: Materials Science can co-develop Alumina/SiC UHTC sputtering protection — identified as future work","Cs handling: Sandia uses Cs in ion source research — rare alignment with negative ion source architecture"],"cons":["L/Q clearances required for most Z-machine and MESA work","DOE/NNSA IP restrictions complicate joint micropane IP","CRADA 12-18 months; start now"],"note":["Initiate MESA WFO immediately — 12–18 mo CRADA negotiation makes this the most time-sensitive action on the list","WFO structure: Sandia fabricates a-SiN/SiC test articles, Aerofuse characterizes under beam at Plattsburgh or UMD","Aerogel co-development opportunity is equally strategic — MESA can accelerate the sputtering protection work flagged as future work in the BWA design"],"url":"https://www.sandia.gov/"},{"id":9,"cat":"lab","name":"Los Alamos National Laboratory","loc":"Los Alamos, NM","lat":35.881,"lng":-106.298,"summary":["LANL's draw is the pRad facility — proton radiography, which directly images charged particle beam penetration through a material stack at flight-relevant energies. There is no other diagnostic like this anywhere in the country. A single pRad campaign could experimentally validate the ZBL Monte Carlo stopping range model from the thermalization analysis of the design, which is currently computed but unvalidated against hardware.","The Ion Beam Laboratory spans 100 keV to several MeV, covering both the 900 keV test range from the development program and the higher energies of D-He3 fusion products (3.6–14.7 MeV protons and alphas). That breadth is valuable as the program scales. CINT, the LANL/Sandia partnership nanofabrication facility, covers DRIE and LPCVD for test article fabrication.","The Sigma Complex manufactures refractory ceramics and has direct aerogel synthesis capability — making LANL a potential co-developer for the UHTC aerogel sputtering protection layer. That's future work in the BWA design but it's a meaningful development path.","The access barriers are real: Q clearance is typically required for Ion Beam Lab and classified program areas, and Strategic Partnership Projects are more restrictive than Sandia WFO agreements. LANL is less oriented toward private industrial partnership than Sandia. Best pursued in parallel with a Sandia MESA CRADA, not instead of it."],"specs":{"Key Assets":{"val":"Ion Beam Lab; pRad proton radiography; Sigma Complex","score":"good"},"Fusion Program":{"val":"Plasma physics; ICF; magnetic mirror","score":"good"},"Access":{"val":"Strategic Partnership Project (SPP)","score":"poor"},"pRad":{"val":"Proton radiography of beam penetration through BWA structure","score":"good"},"Classification":{"val":"Q clearance typically required","score":"poor"},"Personnel":{"val":"~12,000 staff; 3,000+ PhDs","score":"good"}},"supply":{"Proton/Ion Beam (900keV+)":{"val":"LANL Ion Beam Lab: proton beams spanning full range (100keV-MeV); pRad for beam penetration diagnostics through BWA","score":"good"},"SiC/SiN DRIE + SOI Wafer Fab":{"val":"CINT (LANL/Sandia partnership): DRIE/LPCVD; SOI processing available","score":"good"},"High-Vacuum / Conflat Systems":{"val":"UHV throughout Ion Beam Lab and plasma physics","score":"good"},"NaK-77 + Inconel Machining":{"val":"Sigma Complex: direct handling of alkali and refractory metals including NaK; Inconel on-site","score":"good"},"UHTC Aerogel Coating":{"val":"Direct aerogel synthesis and refractory ceramic characterization — ideal co-developer for sputtering protection","score":"good"},"SEM/AFM Post-Irradiation":{"val":"Comprehensive electron microscopy and surface analysis for radiation damage","score":"good"},"Thermalization Validation":{"val":"Best plasma thermalization modeling for volumetric heating from the thermalization analysis; pRad directly validates Bragg curve physics","score":"good"},"ΔP Test Infrastructure":{"val":"High-pressure containment for ICF and plasma experiments","score":"good"}},"pros":["pRad: directly images beam penetration through BWA at flight-relevant energies; validates ZBL stopping range model from the thermalization analysis","Ion Beam Lab 100keV-MeV: covers full energy range (900keV in tests, D-He3 products 3.6-14.7 MeV)","Sigma Complex: direct UHTC aerogel and refractory ceramic capability","Best plasma thermalization modeling for volumetric heating analysis"],"cons":["Q clearance: significant barrier for small company staff","Most isolated major lab; less oriented toward industrial partnership than Sandia","SPP IP restrictions more limiting than WFO"],"note":["Pursue SPP specifically for pRad access — no other facility can image beam penetration through BWA material stack at fusion product energies","Pair with Sandia MESA CRADA: Sandia fabricates, LANL diagnoses beam physics, Aerofuse provides test articles","Q clearance timeline is the main risk — begin screening key personnel early"],"url":"https://www.lanl.gov/"},{"id":10,"cat":"lab","name":"Caltech GALCIT — T5 Shock Tunnel","loc":"Pasadena, CA","lat":34.138,"lng":-118.125,"summary":["The T5 free-piston shock tunnel at Caltech GALCIT achieves 25 MJ/kg reservoir enthalpy and 10,000 K — which is more than enough to replicate the post-BWA thermalization environment specified in the BWA design: 1340 K air at 1.6 atm, 8.8×10¹⁸ cm⁻³ atomic number density. These are the Mach 5 cruise conditions the ZBL model was built around, and T5 can reproduce them essentially exactly.","The density feedback Bragg curve shift — about 30% range extension due to volumetric heating — is a key result from the development program that has only been modeled, not tested. A T5 campaign with a SiC BWA die in the test section would directly validate or refute that number. Research rate is ~$1k–5k per test day, compared to $200k–$600k at AEDC. The cost argument for running T5 first is overwhelming.","Caltech Kavli Nanoscience does DRIE, LPCVD, and PECVD on-campus, so fabrication and thermalization testing can happen in the same visit. UCLA Ion Beam Lab is 15 miles away. The entire irradiation + fab + thermalization loop can be closed in a single Pasadena trip, which is a level of integration no other site can match at this stage.","Test section is 0.3 meters in diameter, so only subscale BWA dies fit — the 12×12mm die from the development program slots in comfortably, but full 200mm arrays don't. Dense suburban campus also means no radiation events or open high-fluence beam work. This is a precision subscale validation site, not a scaling facility."],"specs":{"Key Asset":{"val":"T5: 25 MJ/kg, 100 MPa, 10,000 K reservoir","score":"good"},"Target Conditions":{"val":"Combustor: 1.6 atm, 1340K, 8.8E18 cm-3 — T5-achievable","score":"good"},"Tube":{"val":"30m x 0.3m; 1 ms run time","score":"ok"},"Driver Gas":{"val":"He/Ar; test gas: air, N2, CO2, mixtures","score":"good"},"Access":{"val":"Sponsored research; no clearances","score":"good"},"Cost":{"val":"~$1k-5k/test day (research rate)","score":"good"}},"supply":{"Proton/Ion Beam (900keV+)":{"val":"Caltech Tandem + UCLA Ion Beam ~15 mi — beam irradiation + T5 thermalization same day","score":"good"},"SiC/SiN DRIE + SOI Wafer Fab":{"val":"Caltech Kavli: DRIE, LPCVD, PECVD on-campus — exact a-SiN processes; fab and test one visit; SOI via LA fabs","score":"good"},"High-Vacuum / Conflat Systems":{"val":"Praxair/Edwards LA basin; immediate proximity","score":"good"},"NaK-77 + Inconel Machining":{"val":"Caltech chemistry; LA suppliers; academic alkali metal handling; Inconel via LA aerospace shops","score":"good"},"UHTC Aerogel Coating":{"val":"Caltech chemical engineering; LA suppliers; spin-on testing feasible on campus","score":"good"},"SEM/AFM Post-Irradiation":{"val":"Caltech and UCLA SEM/AFM; same-day beam + characterization practical","score":"good"},"Thermalization Validation":{"val":"T5 IS the thermalization site — replicates combustor conditions (1340K, 1.6 atm, 8.8E18 cm-3); density feedback Bragg curve shift (30% range extension) directly testable","score":"good"},"ΔP Test Infrastructure":{"val":"T5 operates high-pressure/vacuum interfaces","score":"good"}},"pros":["T5 conditions match operational model: 1340K, 1.6 atm, 8.8x10^18 cm-3 — direct ZBL stopping range validation","Kavli DRIE on-campus: LPCVD/PECVD for a-SiN; fab + test one visit","UCLA Ion Beam (~15 mi): irradiation + T5 thermalization same day","~$1k-5k/day vs $200k+/day at AEDC — orders of magnitude cheaper"],"cons":["Test section ~0.3m: subscale only (12x12mm die fit; full 200mm arrays do not)","Academic calendar limits campaign tempo","Dense suburban: no radiation events, no high-fluence beam work"],"note":["Run a T5 campaign first — the fastest and cheapest experimental validation available, orders of magnitude less than AEDC","Single campaign with a SiC BWA die in the test section directly validates ZBL stopping range at T5 conditions","Combine with UCLA ion beam same trip: irradiate in the morning, T5 thermalization in the afternoon"],"url":"https://www.galcit.caltech.edu/"},{"id":11,"cat":"lab","name":"University of Maryland — HYENA","loc":"College Park, MD","lat":38.986,"lng":-76.944,"summary":["UMD is the co-author institution — 14 HYENA student co-authors, Bowcutt as AIAA Fellow visiting research professor, Brehm's group running the hypersonic CFD that defines the Mach 5 boundary conditions for BWA sizing. There's no new partnership to negotiate; the relationship already exists.","The differential pressure test stand from the existing ΔP test stand is physically here — high-vacuum beamline fixture, conflat flange mount, high-pressure gas plenum. That hardware ran the 1-bar validation result that the design reports. The next iteration of that test (larger arrays, higher pressures, combined beam + pressure) happens at this same bench, with no setup cost.","NRL is 10 miles away for proton beam access. NIST is 20 miles in Gaithersburg for advanced materials characterization. The on-campus Ion Beam Lab also exists. For subscale iterative work, the beam access situation is actually quite good without leaving the DC metro area.","UMD is the design and analysis hub, not the scale-up or high-energy test site. The urban campus makes radiation clearance essentially impossible for anything beyond contained lab work. Phase 2 irradiation and larger array testing moves to Plattsburgh; flight-velocity and high-energy events move to Holloman."],"specs":{"Partnership":{"val":"Active research partner; existing agreement","score":"good"},"HYENA":{"val":"14 student co-authors","score":"good"},"Bowcutt":{"val":"AIAA Fellow; Boeing hypersonics heritage","score":"good"},"Brehm":{"val":"Hypersonic CFD — boundary conditions for BWA sizing","score":"good"},"Key Data":{"val":"Mach 5 / 100kft (1.6 atm, 1340K)","score":"good"},"Test Stand":{"val":"DP test stand physically here","score":"good"}},"supply":{"Proton/Ion Beam (900keV+)":{"val":"UMD Ion Beam Lab on-campus; NRL ~10 mi; NIST neutron ~20 mi","score":"good"},"SiC/SiN DRIE + SOI Wafer Fab":{"val":"UMD FabLab/MEMS cleanroom on-campus; NoVA fabs; JHU nearby; where original 12x12mm die fabricated","score":"good"},"High-Vacuum / Conflat Systems":{"val":"DC metro Edwards/Pfeiffer; UMD physics vacuum systems","score":"good"},"NaK-77 + Inconel Machining":{"val":"UMD chemistry/materials; DC metro suppliers; adequate for subscale NaK-77 compatibility","score":"ok"},"UHTC Aerogel Coating":{"val":"UMD materials science; NASA Goddard nearby; spin-on testing feasible in lab","score":"good"},"SEM/AFM Post-Irradiation":{"val":"UMD SEM/AFM on-campus; used for original characterization; beam spot discoloration observed here","score":"good"},"Thermalization Validation":{"val":"No shock tunnel or high-enthalpy; thermalization at T5 or AEDC","score":"poor"},"ΔP Test Infrastructure":{"val":"Existing DP stand : high-pressure plenum, conflat mount, vacuum chamber — operational; push beyond 1 bar here","score":"good"}},"pros":["Test stand from the development program physically here: beamline fixture + conflat mount + plenum — zero setup for next iteration","Bowcutt FBCC vehicle CFD defines Mach 5 boundary conditions for BWA sizing","NRL (10 mi) and NIST (20 mi) for beam and materials characterization","14 HYENA students = engineering capacity for iterative BWA design"],"cons":["Urban: no radiation clearance — high-fluence transfers to Plattsburgh or Holloman","Not a fab scale-up site — lab-scale only (12x12mm die)","Phase 2+ testing requires transport"],"note":["Immediate next step: push existing DP stand beyond 1 bar and test larger BWA arrays — the program roadmap targets scaling to larger apertures as future work","Design and analysis hub only; all high-fluence irradiation and Phase 2+ testing moves to Plattsburgh then Holloman","Leverage HYENA team capacity for iterative die design; NRL (10 mi) for beam access without long logistics"],"url":"https://hyena.umd.edu/"},{"id":12,"cat":"lab","name":"AEDC — Arnold Air Force Base","loc":"Tullahoma, TN","lat":35.395,"lng":-86.084,"summary":["AEDC is the definitive full-scale validation destination — $11.9B replacement value, arc-jet heaters that generate 10–20 MW/m² thermal loads, and the largest vacuum pumping systems in the western hemisphere. The arc-jet capability matches the BWA heat flux from the FEA in the thermal FEA better than any other facility on this list. When the BWA needs to be tested at full engine scale under simultaneous thermal and pressure loads, this is where that happens.","The Vanderbilt HVEC tandem pelletron in Nashville is about 90 miles away, which makes combined beam irradiation and arc-jet thermal testing feasible within a single facility visit — a meaningful logistical advantage for late-stage characterization campaigns.","The access path is the central challenge. CRADA negotiation typically takes 12–24 months, and the key test facilities carry a 2–4 year scheduling backlog beyond that. The earliest realistic first access is 2027–2028 even if a CRADA application is submitted today. At $200k–$600k per operating day, campaigns need to be tightly scoped and well-prepared. There is no exploratory time budget at AEDC.","The published BWA test results is ideal CRADA application documentation — it establishes TRL 3→4 experimental results and a clear technical roadmap for what AEDC-level testing would validate. Submit the CRADA application now; the waitlist is not getting shorter."],"specs":{"Key Asset":{"val":"Arc-jets: 10-20 MW/m2 matching BWA FEA","score":"good"},"Power":{"val":"Dedicated TVA substation; 100-200 MW","score":"good"},"Access":{"val":"CRADA / Cooperative Agreement","score":"poor"},"Waitlist":{"val":"2-4 year backlog","score":"poor"},"Cost":{"val":"$200k-$600k+/day","score":"poor"},"Thermal Test":{"val":"the thermal FEA: 20 MW/m2 waste heat on Inconel","score":"good"}},"supply":{"Proton/Ion Beam (900keV+)":{"val":"Vanderbilt HVEC pelletron (Nashville, ~90 mi); combined beam + arc-jet campaigns feasible","score":"good"},"SiC/SiN DRIE + SOI Wafer Fab":{"val":"Vanderbilt nanoscience cleanroom ~90 mi","score":"good"},"High-Vacuum / Conflat Systems":{"val":"Largest vacuum systems in western world — million L/s class beamline capability","score":"good"},"NaK-77 + Inconel Machining":{"val":"Liquid coolant test loops operational; NaK-77 within DoD handling culture; TVA watershed cooling; defense Inconel supply chain","score":"good"},"UHTC Aerogel Coating":{"val":"Nashville/Huntsville suppliers; AEDC materials science for UHTC characterization under arc-jet loads","score":"good"},"SEM/AFM Post-Irradiation":{"val":"Vanderbilt and AEDC characterization; combined thermal + irradiation damage analysis","score":"good"},"Thermalization Validation":{"val":"Von Karman tunnels to Mach 14 + arc-jets: full thermalization at flight conditions; most comprehensive validation available","score":"good"},"ΔP Test Infrastructure":{"val":"High-pressure/vacuum interfaces for arc-jet and tunnel articles — directly applicable to full-scale BWA","score":"good"}},"pros":["Arc-jets: most relevant thermal test for 10-20 MW/m2 BWA heat flux — validates FEA at full scale","Largest vacuum systems in western world; full-scale beamline at million L/s class","Vanderbilt pelletron (90 mi): combined beam + arc-jet same visit","TVA power 100-200 MW: no limitation for full-scale rig"],"cons":["2-4 year waitlist: apply CRADA immediately — gating item","$200k-$600k+/day; targeted campaigns only","DoD clearances; inaccessible for early work"],"note":["Apply for CRADA now — 12–24 mo negotiation + 2–4 yr waitlist = earliest realistic access 2027–2028; every month of delay pushes that back","published BWA test results is the ideal supporting documentation for a CRADA application — use it","Targeted campaigns only at $200k–$600k+/day; combine arc-jet thermal + Vanderbilt pelletron irradiation in single visits"],"url":"https://www.arnold.af.mil/"},{"id":13,"cat":"lab","name":"AFRL — Wright-Patterson AFB","loc":"Wright-Patterson AFB, OH","lat":39.826,"lng":-84.048,"summary":["AFRL Wright-Patterson is not a test site — it's the primary USAF funding source for both the propulsion and directed energy programs that the FBCC and BWA fall under. The Propulsion Directorate funds Mach 5+ combined cycle work; the Directed Energy Directorate funds charged particle beam technology. The BWA sits at the intersection of both portfolios simultaneously, which is a rare alignment that program managers in both offices will recognize.","The SBIR mechanism is the right entry point. Phase I is roughly $200k and takes less than 6 months to first award. The published BWA test results provides exactly the kind of TRL 3→4 experimental validation data that makes a Phase I application competitive. Submitting to both directorates at once doubles the surface area.","Phase II (~$2M) and Phase III/OTA funding can cover significant infrastructure costs — not just R&D. OTA contracts have funded entire test facility build-outs. That mechanism is what enables Plattsburgh facility setup and first Sandia MESA fabrication campaigns without requiring equity financing.","The timing matters: AFWERX SBIR solicitation cycles happen on a schedule, and missing a cycle means waiting another 6–12 months. The window to submit while the data is fresh is now."],"specs":{"Role":{"val":"Primary USAF funder for FBCC + particle beam","score":"good"},"Directorates":{"val":"Propulsion (Mach 5+) + Directed Energy (particle beams)","score":"good"},"SBIR Phase I":{"val":"~$200k; <6 mo to award","score":"good"},"Phase III":{"val":">$50M infrastructure via SBIR III/OTA","score":"good"},"Note":{"val":"Dayton, OH — not a test site","score":"poor"},"Supporting Data":{"val":"Published experimental results = Phase I supporting data","score":"good"}},"supply":{"Proton/Ion Beam (900keV+)":{"val":"OSU Van de Graaff (Columbus, ~70 mi); Wright State and Dayton labs nearby","score":"good"},"SiC/SiN DRIE + SOI Wafer Fab":{"val":"OSU cleanroom ~70 mi; AFRL Materials Directorate has SiC processing","score":"good"},"High-Vacuum / Conflat Systems":{"val":"Cincinnati Edwards; AFRL on-base vacuum; Midwest distributors","score":"good"},"NaK-77 + Inconel Machining":{"val":"AFRL Materials Directorate; Midwest distributors; DoD procurement","score":"good"},"UHTC Aerogel Coating":{"val":"AFRL Materials and Manufacturing: direct UHTC ceramic expertise; natural co-developer for aerogel sputtering protection","score":"good"},"SEM/AFM Post-Irradiation":{"val":"AFRL materials labs; OSU microscopy; contract-based analysis","score":"good"},"Thermalization Validation":{"val":"AFRL has combustion rigs but no high-enthalpy shock; limited for thermalization","score":"ok"},"ΔP Test Infrastructure":{"val":"AFRL propulsion cells include high-pressure combustion; applicable to BWA DP under contract","score":"good"}},"pros":["Directed Energy funds charged-particle beam tech — BWA is exactly the dual-use propulsion/DE technology AFRL prioritizes","SBIR Phase I <6 months: published BWA test results provides TRL 3-4 data (1 bar DP; 900keV to 3.2x10^17 cm-2)","AFRL Materials: direct UHTC and radiation-hard expertise for aerogel development","OTA can fund entire infrastructure build-out — not just R&D — enabling AEDC and Sandia access"],"cons":["Dayton — not a test site","Competitive SBIR; Phase I to II not guaranteed","Contract required before technical access"],"note":["Submit SBIR to both Propulsion and Directed Energy directorates simultaneously — BWA sits at the intersection of both program portfolios, a rare alignment","Use published BWA test results as Phase I supporting data; it provides TRL 3→4 evidence (1 bar DP + 900keV irradiation)","SBIR Phase II (~$2M) could fund Plattsburgh build-out and first Sandia MESA fabrication campaign — act before next solicitation cycle"],"url":"https://www.afrl.af.mil/"},{"id":14,"cat":"partner","name":"Silson Ltd","loc":"Southam, UK (ships globally)","lat":52.25,"lng":-1.39,"summary":["Silson Ltd manufactures custom silicon nitride and silicon membrane windows for research accelerators, synchrotrons, and electron microscopy. They ship free-standing SiN membranes from 10nm to 2μm thickness on silicon frames — directly applicable to the BWA micropane architecture. They understand thin-film vacuum-interface windows at exactly the scale the design is working at.","Unlike national labs or universities, Silson is a commercial vendor with a dedicated sales function. They respond to RFQs, they have engineering staff who will get on a call, and they operate on weeks-to-months timescales rather than CRADA negotiation cycles.","Their SiN membrane products are directly applicable to the BWA micropane architecture. They manufacture free-standing SiN windows from 10nm–2µm thickness on silicon frames, routinely used as vacuum-to-atmosphere interfaces on beamlines worldwide. This is essentially the component the design is trying to build, already available commercially.","The conversation to have: share the BWA micropane geometry spec, ask whether they can fabricate custom SiN or SiC membrane arrays at 50–500µm pitch on silicon frames, and what their minimum order and timeline looks like. They may also have insight on membrane survivability under proton irradiation."],"specs":{"Type":{"val":"Commercial SiN/Si membrane window manufacturer","score":"good"},"Products":{"val":"Free-standing SiN membranes 10nm–2μm; custom Si frames; TEM windows; beamline windows","score":"good"},"Lead Time":{"val":"Weeks to months vs. years for national labs","score":"good"},"Relevance":{"val":"SiN window fab at BWA scale; vacuum-to-pressure delta-P products","score":"good"},"Location":{"val":"Southam, UK — ships globally; 1–2 week delivery to US","score":"good"},"Access":{"val":"Commercial RFQ; no agreements required","score":"good"}},"supply":{"SiC/SiN Thin-Film Windows":{"val":"Core product line — free-standing SiN membranes 10nm–2µm on Si frames; custom geometries for beamline and ΔP applications","score":"good"},"Vacuum-to-Atmosphere ΔP":{"val":"Standard product use case; windows rated to vacuum-to-atmosphere differential as shipped product","score":"good"},"Beam Transmission Characterization":{"val":"SiN membranes widely characterized for proton, electron, and X-ray transmission at synchrotron and accelerator facilities globally","score":"good"},"Custom Geometry":{"val":"Can work to customer drawing; experience with hexagonal and rectangular window array geometries","score":"ok"},"UHTC Aerogel Coating":{"val":"Not a core capability; but may advise on coating compatibility with their window materials","score":"ok"},"Lead Time":{"val":"Prototype windows typically 4–12 weeks depending on process; no CRADA or clearance required","score":"good"}},"pros":["Manufactures BWA-relevant free-standing SiN membrane windows commercially — no federal partnership agreement needed","Operates on commercial timescales: 4–12 weeks for prototypes vs. 12–18 months for national lab CRADA","Direct experience with vacuum-to-pressure differential window products — exactly the BWA operating condition","Can serve as a second-source membrane supplier alongside Caltech Kavli or Sandia MESA"],"cons":["Not a research partner — limited co-development capacity; they build to spec, not co-design","SiC micropane array fabrication at 50–500µm pitch may be outside standard product line; needs RFQ to confirm custom geometry capability","No irradiation testing capability on-site; fab only"],"note":["Send the BWA micropane geometry spec and request a quote — this is a commercial vendor with online ordering; the conversation is fast","Ask specifically whether custom multi-window arrays at 50–500µm pitch on Si frames are feasible or whether they are limited to single-window geometries","If they can fabricate to spec, they become a fast-turn production source for SiN test membranes while Sandia MESA CRADA is negotiating"],"url":"https://www.silson.com/"},{"id":15,"cat":"partner","name":"Ithaco Space Systems / CHA Industries","loc":"Ithaca, NY","lat":42.44,"lng":-76.5,"summary":["CHA Industries (formerly Ithaco) is a precision thin-film deposition house near Cornell that does magnetron sputtering, e-beam evaporation, and ion beam deposition for aerospace, semiconductor, and defense customers. They are 10 minutes from Cornell NanoScale Facility and operate as a commercial service bureau — no university bureaucracy, no grant cycle dependency.","The relevance is the UHTC aerogel coating step. The design specifies a spin-on alumina/SiC aerogel layer applied to the air-facing side of the BWA to limit sputtering. CHA Industries has the deposition tooling to experiment with thin ceramic coatings on SiC substrates, and their proximity to Cornell means a combined CNF DRIE fab run + CHA coating session can happen on the same trip.","They work on custom aerospace components regularly and have experience with fragile, high-value thin-film substrates. They can likely handle 100nm SiC membranes without destroying them, which is a non-trivial process challenge.","The conversation: share the sputtering protection layer requirement from the development program, ask about spin-on or PVD alumina/SiC coating on 100nm SiC membranes. Small batch, custom work is their business model."],"specs":{"Type":{"val":"Commercial thin-film deposition service bureau","score":"good"},"Processes":{"val":"Magnetron sputtering; e-beam evaporation; ion beam deposition; ALD","score":"good"},"Location":{"val":"Ithaca, NY — 10 min from Cornell CNF","score":"good"},"Lead Time":{"val":"Days to weeks for standard processes","score":"good"},"Access":{"val":"Commercial PO; no agreements","score":"good"},"Substrate Handling":{"val":"Experience with fragile aerospace thin-film substrates","score":"good"}},"supply":{"UHTC Ceramic Coating":{"val":"Magnetron sputtering of Al2O3; ALD for conformal alumina; can attempt spin-on aerogel with customer-supplied sol-gel precursor","score":"good"},"SiC/SiN Deposition":{"val":"PVD SiC and Si3N4 available; PECVD SiN possible depending on tooling","score":"ok"},"Substrate Compatibility":{"val":"Experience with thin, fragile substrates; can handle 100nm SiC membranes if properly fixtured","score":"good"},"Proximity to CNF":{"val":"10 min from Cornell NanoScale Facility — fab at CNF, coat at CHA, characterize at Cornell SEM in one day","score":"good"},"Batch Size":{"val":"Small custom batches; no minimum order requirement for R&D work","score":"good"},"Turnaround":{"val":"Standard PVD runs typically 1–3 weeks; urgent possible","score":"good"}},"pros":["Commercial PO, no agreements — fastest path to aerogel/ceramic coating experiments on actual BWA die","10 min from Cornell CNF: DRIE fab + CHA coating + Cornell SEM characterization in a single Ithaca trip","Experience with fragile aerospace substrates reduces risk of destroying 100nm SiC membranes during coating","Small batch custom work is their core business; they want R&D customers"],"cons":["Spin-on aerogel is not a standard service — requires customer-supplied precursor and process development","Not an irradiation or pressure testing partner; coating deposition only","Capacity limited for large production runs if program scales"],"note":["Contact CHA with the sputtering protection layer spec from the development program and ask about Al2O3 ALD on 100nm SiC — this is a 15-minute phone call, not a proposal process","Coordinate a combined Cornell CNF + CHA trip: DRIE fab one day, coating next day, SEM characterization same week","If the ALD alumina approach works, CHA becomes the production coating vendor for all subsequent test articles"],"url":"https://chaindustries.com/"},{"id":16,"cat":"partner","name":"National Electrostatics Corp (NEC)","loc":"Middleton, WI","lat":43.1,"lng":-89.51,"summary":["NEC manufactures tandem pelletron accelerators — the specific machine type used for the 900keV irradiation tests in the BWA design. They are the dominant commercial supplier of research-grade ion accelerators in the 1–25 MV range and have shipped systems to universities and national labs globally. They understand these machines better than anyone outside of the labs that run them.","The relevant conversation is not buying a machine — it's asking NEC whether they maintain any demo, refurbished, or lease-back units, and whether they have customers who rent beam time on systems they've installed. NEC often knows which of their installed customers have underutilized capacity and can make introductions.","They also do system upgrades, beam optics consulting, and custom ion source design. If Aerofuse eventually owns a test site (West Texas, Wendover), NEC is the vendor who specifies and installs the accelerator. Starting that relationship now — before the capital is committed — means the system design can be optimized for BWA test article geometry from the outset.","Lead time on a new tandem pelletron system is 18–30 months. That's the number to plan around if owned accelerator infrastructure is part of the long-term roadmap."],"specs":{"Type":{"val":"Commercial accelerator manufacturer — tandem pelletron systems","score":"good"},"Products":{"val":"1–25 MV tandem pelletrons; ion sources; beam optics; end stations","score":"good"},"Relevance":{"val":"Exact accelerator type used in the BWA design (900keV tandem pelletron); future owned-facility accelerator vendor","score":"good"},"Lead Time":{"val":"New system: 18–30 months; beam time referrals: immediate","score":"ok"},"Location":{"val":"Middleton, WI — global install base","score":"good"},"Access":{"val":"Commercial; no agreements for consulting or referrals","score":"good"}},"supply":{"Tandem Pelletron Accelerator":{"val":"Primary manufacturer — can spec a system optimized for BWA irradiation geometry and energy range (500keV–2MeV)","score":"good"},"Beam Time Referrals":{"val":"Know which installed customers have underutilized capacity; can make introductions to NMSU, UdeM, and others","score":"good"},"Custom Ion Sources":{"val":"Design and supply H+/H- sources, including cesium-sputter negative ion sources as described in the BWA design","score":"good"},"End Station Design":{"val":"Can design custom end station for BWA test article mounting, vacuum-to-pressure differential fixture (the ΔP test stand geometry)","score":"good"},"System Maintenance":{"val":"Support installed base globally; know machine uptime and scheduling windows at customer sites","score":"good"},"Beam Optics Consulting":{"val":"Can advise on beam collimation for 3mm x 3mm spot on BWA die as used in the BWA design irradiation tests","score":"good"}},"pros":["Only commercial manufacturer of the exact accelerator type used in the BWA design — they know this machine","Can connect Aerofuse to underutilized capacity at their installed customer base before any accelerator purchase","Custom end station design for BWA the ΔP test stand geometry means no bespoke engineering on Aerofuse's side","Starting the vendor relationship now means owned-facility accelerator spec can be co-designed for BWA test geometry from day one"],"cons":["18–30 month lead time on new system — not a fast solution for early irradiation needs","Cost of owned accelerator system is significant capex (typically $1–5M+ depending on voltage and options)","Consulting and referrals are free; hardware is not"],"note":["Call NEC and describe the irradiation test setup from the development program — they will immediately know what beam parameters are needed and which of their customers might have available time","Ask specifically about refurbished or demo systems if capex is constrained; NEC occasionally has trade-in units","When West Texas or Wendover moves to procurement, NEC writes the accelerator spec — start that conversation 24 months before the facility comes online"],"url":"https://www.pelletron.com/"},{"id":17,"cat":"partner","name":"Eurofins EAG Laboratories","loc":"Multiple US Locations","lat":37.39,"lng":-122.08,"summary":["EAG is a commercial materials characterization service with labs in Sunnyvale, Seattle, Minneapolis, and several other cities. Their capabilities directly cover the post-irradiation analysis workflow from the development program: SEM, TEM, AFM, SIMS, RBS, and XPS on semiconductor and thin-film materials. They turn around results in days to weeks, not months.","The program's post-irradiation analysis used SEM to look for surface damage on BWA samples, and noted that AFM would be needed to detect the discoloration observed (Section VI). EAG runs both. They also run RBS (Rutherford Backscattering Spectrometry), which can depth-profile implanted hydrogen and measure damage layer thickness quantitatively — data the design currently lacks.","For iterative BWA development, having a commercial characterization lab on retainer means turnaround doesn't depend on university SEM availability or national lab scheduling. Ship a batch of irradiated die, get SEM+AFM+RBS data back in 2 weeks. That's the iteration cadence needed for rapid development.","They also do failure analysis and cross-section TEM on thin membranes, which becomes relevant if a BWA die fails under pressure or irradiation and the failure mode needs to be understood quickly."],"specs":{"Type":{"val":"Commercial materials characterization service laboratory","score":"good"},"Techniques":{"val":"SEM, TEM, AFM, SIMS, RBS, XPS, EDS, EBSD, nanoindentation","score":"good"},"Turnaround":{"val":"Rush: 3–5 days; standard: 2–3 weeks; no scheduling backlog","score":"good"},"Relevance":{"val":"Post-irradiation BWA sample analysis; sputtering damage quantification; failure analysis","score":"good"},"Locations":{"val":"Sunnyvale CA; Bothell WA; Minneapolis MN; East Windsor NJ; others","score":"good"},"Access":{"val":"Commercial PO; online quote system; no agreements required","score":"good"}},"supply":{"SEM / EDS":{"val":"High-resolution SEM with EDS for post-irradiation surface imaging and elemental mapping of BWA die","score":"good"},"AFM":{"val":"Atomic force microscopy for sub-nm surface damage quantification — the next step the characterization roadmap calls for","score":"good"},"RBS (Rutherford Backscattering)":{"val":"Depth profiles implanted H+ in SiC; measures damage layer thickness quantitatively; data the design lacks","score":"good"},"TEM Cross-Section":{"val":"Transmission electron microscopy of 100nm SiC membrane cross-sections; failure mode analysis","score":"good"},"SIMS":{"val":"Secondary ion mass spectrometry for hydrogen depth profiling in irradiated SiC samples","score":"good"},"Turnaround":{"val":"Rush quotes available online; typical 2–3 week standard turnaround; no university scheduling dependency","score":"good"}},"pros":["Provides the AFM analysis the characterization roadmap identifies as needed next — on a commercial turnaround","RBS capability closes a specific gap: quantitative H+ implantation depth profiling in SiC that the current current data set lacks","Commercial retainer model enables fast iteration: ship irradiated die, receive data in 2 weeks, adjust design","Multiple locations means samples can ship to nearest lab regardless of where irradiation testing runs"],"cons":["Cost per sample run is significant relative to university SEM — budgeting needed for sustained use","Not a research partner; they generate data, not insight; interpretation is Aerofuse's responsibility","TEM cross-section prep on 100nm membranes is delicate; success rate depends on sample preparation skill"],"note":["Get a quote for SEM + AFM on a batch of irradiated BWA die — this closes the \"more detailed analysis required\" finding from Section VI of the design","RBS H+ depth profiling should be on the standard post-irradiation analysis panel for every test campaign going forward","Set up an account and run a first batch before the next irradiation campaign; the workflow needs to be tested before it's relied on"],"url":"https://www.eag.com/"}];
+
+// ── STATE ─────────────────────────────────────────────────
+function loadSites(){try{const s=localStorage.getItem(STORAGE_KEY);if(s)return JSON.parse(s);}catch(e){}return JSON.parse(JSON.stringify(DEFAULTS));}
+function saveSites(d){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(d));}catch(e){}}
+let SITES=loadSites(),af='all',selId=null,editId=null,delId=null,map,markers={};
+
+// ── VIEW SWITCHING ────────────────────────────────────────
+function switchView(v,btn){
+  document.querySelectorAll('.panel-view').forEach(el=>{
+    el.classList.toggle('active',el.id==='view-'+v);
+  });
+  document.querySelectorAll('.navtab').forEach(el=>el.classList.remove('active'));
+  btn.classList.add('active');
+  if(v==='map'){setTimeout(()=>{if(map)map.invalidateSize();},100);}
+  if(v==='planner'){renderPlanner();}
+  if(v==='procurement'){renderProcurement();}
+  if(v==='engine'){renderEngine();}
+}
+
+// ── TOAST ──────────────────────────────────────────────────
+function showToast(msg){
+  const t=document.getElementById('toast');t.textContent=msg;t.style.opacity='1';
+  setTimeout(()=>{t.style.opacity='0'},2200);
+}
+
+// ── COPY SITE SUMMARY ──────────────────────────────────────
+function copySummary(){
+  if(!selId)return;const s=SITES.find(x=>x.id===selId);if(!s)return;
+  const meta=SITE_META[s.id]||{};const to=meta.testObjective;
+  let txt=`${s.name}\n${s.loc}\n`;
+  if(s.url)txt+=`${s.url}\n`;
+  txt+=`\nOverview:\n`;
+  (Array.isArray(s.summary)?s.summary:[s.summary||'']).forEach(p=>txt+=`${p}\n\n`);
+  if(to){txt+=`Test Objective:\n• Article: ${to.article}\n• Objective: ${to.objective}\n• Go/No-Go: ${to.metric}\n\n`;}
+  if(s.pros?.length){txt+=`Key Advantages:\n`;s.pros.forEach(p=>txt+=`• ${p}\n`);txt+=`\n`;}
+  if(s.cons?.length){txt+=`Key Risks:\n`;s.cons.forEach(c=>txt+=`• ${c}\n`);txt+=`\n`;}
+  if(s.note?.length){txt+=`Recommended Next Steps:\n`;(Array.isArray(s.note)?s.note:[s.note]).forEach(n=>txt+=`• ${n}\n`);}
+  navigator.clipboard.writeText(txt).then(()=>showToast('Copied to clipboard')).catch(()=>showToast('Copy failed'));
+}
+
+// ── EXPORT JSON ────────────────────────────────────────────
+function exportJSON(){
+  const data={sites:SITES,meta:SITE_META,procurement:PROC_ITEMS,exported:new Date().toISOString()};
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download=`aerofuse-sites-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();URL.revokeObjectURL(a.href);
+  showToast('Exported JSON');
+}
+
+// ── ENGINE-CAPABLE VIEW ────────────────────────────────────
+const ENGINE_SITES={
+  10:{cap:'T5 shock tunnel: 25 MJ/kg, 10,000 K reservoir. Replicates <b>1340K / 1.6 atm</b> Mach 5 cruise conditions exactly. Subscale BWA die thermalization + Bragg curve shift validation.',why:'Cheapest first validation (~$1–5k/day). Confirms ZBL model before committing to expensive facilities.',scale:'Subscale (12mm die)'},
+  4:{cap:'World\'s longest rocket sled track: <b>51,000 ft, Mach 8.6</b>. Flight-representative inlet conditions for BWA testing. NMSU pelletron 45 min for beam access.',why:'Only facility that tests BWA under actual flight dynamic pressure. Bridges gap between lab and arc-jet.',scale:'Flight-representative'},
+  12:{cap:'Arc-jet heaters at <b>10–20 MW/m²</b> matching BWA thermal FEA. Largest vacuum pumping in western hemisphere. Vanderbilt pelletron 90 mi for combined campaigns.',why:'Definitive full-scale validation. Simultaneous thermal + pressure + beam on 200mm array.',scale:'Full-scale (200mm array)'},
+  2:{cap:'ERCOT 138kV with <b>100+ MW headroom</b>. 10,000–50,000 acre tracts with >40 mi clearance. Oilfield pressure vessel culture.',why:'Only site that powers a full-scale FBCC integrated engine rig. Permanent owned facility.',scale:'Full FBCC engine'},
+  3:{cap:'125,000-acre federal buffer with <b>24/7 unrestricted testing</b>. NASA NaK-77 handling culture. Flame trench systems.',why:'NaK-77 cooling loop validation under federal safety protocols. Radiation-adjacent event clearance.',scale:'NaK system + BWA module'}
+};
+function renderEngine(){
+  const container=document.getElementById('engine-cards');
+  container.innerHTML=Object.entries(ENGINE_SITES).map(([id,eng])=>{
+    const s=SITES.find(x=>x.id===+id);if(!s)return '';
+    const meta=SITE_META[id]||{};
+    const ltColor=meta.leadMonths===0?'green':meta.leadMonths<=3?'green':meta.leadMonths<=12?'amber':'red';
+    const ltLabel=meta.leadMonths===0?'Now':meta.leadMonths<12?`${meta.leadMonths}mo lead`:`${Math.round(meta.leadMonths/12)}yr lead`;
+    const costLabels=['','<$10k/camp.','$10–100k','$100k–1M','$1M+'];
+    return `<div class="eng-card">
+      <div class="eng-card-name">${s.name}</div>
+      <div class="eng-card-loc">${s.loc} · ${eng.scale}</div>
+      <div class="eng-card-cap">${eng.cap}</div>
+      <div style="font-size:10px;color:var(--txd);margin-bottom:10px;line-height:1.5"><b style="color:var(--txb)">Why this site:</b> ${eng.why}</div>
+      <div class="eng-card-meta">
+        ${meta.phase?`<span class="chip chip-phase${meta.phase}">Phase ${meta.phase}</span>`:''}
+        <span class="chip chip-${ltColor}">${ltLabel}</span>
+        ${meta.costTier?`<span class="chip ${['','chip-cost1','chip-cost2','chip-cost3','chip-cost4'][meta.costTier]}">${costLabels[meta.costTier]}</span>`:''}
+      </div>
+      <button class="eng-card-btn" onclick="document.querySelectorAll('.navtab').forEach(b=>b.classList.remove('active'));const mb=document.querySelector('.navtab');mb.classList.add('active');switchView('map',mb);setTimeout(()=>selectSite(${id}),150)">View on Map →</button>
+    </div>`;
+  }).join('');
+}
+
+// ── INIT ──────────────────────────────────────────────────
+document.getElementById('hdate').textContent=new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'}).toUpperCase();
+window.addEventListener('load',()=>{
+  map=L.map('map',{center:[38.5,-99],zoom:4,zoomControl:false,attributionControl:false});
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{subdomains:'abcd',maxZoom:19}).addTo(map);
+  L.control.zoom({position:'bottomright'}).addTo(map);
+  rebuildMarkers();renderSidebar();
+  setTimeout(()=>map.invalidateSize(),100);
+});
+
+function rebuildMarkers(){
+  Object.values(markers).forEach(m=>map.removeLayer(m));markers={};
+  SITES.forEach(site=>{
+    const c=CAT[site.cat]||{color:'#888'};
+    const icon=L.divIcon({className:'',html:`<div id="mp${site.id}" style="width:11px;height:11px;border-radius:50%;background:${c.color};box-shadow:0 0 8px ${c.color}80;border:2px solid rgba(255,255,255,.2);cursor:pointer;transition:all .2s"></div>`,iconSize:[11,11],iconAnchor:[5,5]});
+    const m=L.marker([site.lat,site.lng],{icon}).addTo(map);
+    m.on('click',()=>selectSite(site.id));markers[site.id]=m;
+  });
+}
+
+// ── SIDEBAR ───────────────────────────────────────────────
+function renderSidebar(){
+  const filtered=af==='all'?SITES:SITES.filter(s=>s.cat===af);
+  document.getElementById('cnt').textContent=`(${SITES.length})`;
+  document.getElementById('slist').innerHTML=filtered.map(s=>{
+    const c=CAT[s.cat]||{color:'#888',label:'?'};
+    const meta=SITE_META[s.id]||{};
+    const phaseChip=meta.phase?`<span class="chip chip-phase${meta.phase}">P${meta.phase}</span>`:'';
+    const ltColor=meta.leadMonths===0?'green':meta.leadMonths<=3?'green':meta.leadMonths<=12?'amber':'red';
+    const ltLabel=meta.leadMonths===0?'Now':meta.leadMonths<12?`${meta.leadMonths}mo`:`${Math.round(meta.leadMonths/12)}yr`;
+    const ltChip=meta.leadMonths!==undefined?`<span class="chip chip-${ltColor}">${ltLabel}</span>`:'';
+    const costLabels=['','<$10k/camp.','$10–100k','$100k–1M','$1M+'];
+    const costColors=['','chip-cost1','chip-cost2','chip-cost3','chip-cost4'];
+    const costChip=meta.costTier?`<span class="chip ${costColors[meta.costTier]}">${costLabels[meta.costTier]}</span>`:'';
+    return `<div class="sc${selId===s.id?' act':''}" onclick="selectSite(${s.id})">
+      <div class="scdot" style="background:${c.color};box-shadow:0 0 5px ${c.color}55"></div>
+      <div class="scb">
+        <div class="scn">${s.name}</div>
+        <div class="scl">${s.loc}</div>
+        <div class="sc-chips">${phaseChip}${ltChip}${costChip}</div>
+      </div>
+      <div class="sct" style="color:${c.color};border-color:${c.color}40;background:${c.color}14">${c.label}</div>
+      <div class="scact">
+        <button class="ab" onclick="event.stopPropagation();openModal('edit',${s.id})" title="Edit">✎</button>
+        <button class="ab dl" onclick="event.stopPropagation();startDeleteSite(${s.id})" title="Delete">✕</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+function setF(f,btn){af=f;document.querySelectorAll('.fb').forEach(b=>{b.className='fb'});btn.className=`fb a${f==='all'?'a':f==='greenfield'?'g':f==='military'?'m':f==='partner'?'p':'l'}`;renderSidebar();}
+
+// ── DETAIL ────────────────────────────────────────────────
+function selectSite(id){
+  selId=id;const s=SITES.find(x=>x.id===id);if(!s)return;
+  document.querySelectorAll('[id^="mp"]').forEach(el=>{el.style.width='11px';el.style.height='11px';el.style.borderColor='rgba(255,255,255,.2)'});
+  const mp=document.getElementById('mp'+id);if(mp){mp.style.width='17px';mp.style.height='17px';mp.style.borderColor='rgba(255,255,255,.85)'}
+  map.setView([s.lat,s.lng],Math.max(map.getZoom(),7),{animate:true,duration:.5});
+  renderSidebar();renderDetail(s);
+  document.getElementById('dp').classList.add('vis');
+  setTimeout(()=>document.querySelector('.sc.act')?.scrollIntoView({behavior:'smooth',block:'nearest'}),50);
+}
+function closeDp(){selId=null;document.getElementById('dp').classList.remove('vis');document.querySelectorAll('[id^="mp"]').forEach(el=>{el.style.width='11px';el.style.height='11px';el.style.borderColor='rgba(255,255,255,.2)'});renderSidebar();}
+function editCur(){if(selId)openModal('edit',selId);}
+
+function renderDetail(s){
+  const c=CAT[s.cat]||{color:'#888',label:'?'};
+  const meta=SITE_META[s.id]||{};
+  document.getElementById('dpn').textContent=s.name;
+  document.getElementById('dploc').textContent=s.loc;
+  const tag=document.getElementById('dptag');tag.textContent=c.label;tag.style.cssText=`color:${c.color};border-color:${c.color}50;background:${c.color}14`;
+  
+  // Meta chips in header
+  const ltColor=meta.leadMonths===0?'green':meta.leadMonths<=3?'green':meta.leadMonths<=12?'amber':'red';
+  const ltLabel=meta.leadMonths===0?'Available Now':meta.leadMonths<12?`${meta.leadMonths} mo lead`:meta.leadMonths===12?'12 mo lead':`${Math.round(meta.leadMonths/12)} yr lead`;
+  const costLabels=['','Access <$10k/campaign','$10–100k/campaign','$100k–1M/campaign','$1M+/campaign (capex)'];
+  const costColors=['','chip-cost1','chip-cost2','chip-cost3','chip-cost4'];
+  const phaseLabel=meta.phase?`Phase ${meta.phase} site`:'';
+  let metaChipsH='';
+  if(meta.phase||meta.leadMonths!==undefined||meta.costTier){
+    metaChipsH=`<div class="sc-chips" style="margin-top:7px">
+      ${meta.phase?`<span class="chip chip-phase${meta.phase}">${phaseLabel}</span>`:''}
+      ${meta.leadMonths!==undefined?`<span class="chip chip-${ltColor}">${ltLabel}</span>`:''}
+      ${meta.costTier?`<span class="chip ${costColors[meta.costTier]}">${costLabels[meta.costTier]}</span>`:''}
+    </div>`;
+  }
+  // Inject chips into header
+  let metaEl=document.getElementById('dp-meta-chips');
+  if(!metaEl){const dpm=document.getElementById('dptag').parentElement;metaEl=document.createElement('div');metaEl.id='dp-meta-chips';dpm.insertAdjacentElement('afterend',metaEl);}
+  metaEl.innerHTML=metaChipsH;
+
+  const specH=Object.entries(s.specs||{}).map(([k,v])=>{
+    const sc=typeof v==='object'?v.score:'';const vl=typeof v==='object'?v.val:v;
+    const badge=sc?`<span class="badge ${sc==='good'?'bg':sc==='ok'?'bo':'bp'}">${sc.toUpperCase()}</span>`:'';
+    return `<div class="sc2"><div class="sk">${k}${badge?` ${badge}`:''}</div><div class="sv">${vl}</div></div>`;
+  }).join('');
+  const supH=Object.entries(s.supply||{}).map(([k,v])=>{
+    const cl=v.score==='good'?'bg':v.score==='ok'?'bo':'bp';const lb=v.score==='good'?'GOOD':v.score==='ok'?'OK':'POOR';
+    const items=(v.val||'').split(/;|—(?=\s)/).map(x=>x.trim()).filter(Boolean);
+    const itemsH=items.map(i=>`<div class="supv-item">${i}</div>`).join('');
+    return `<div class="supc"><div class="supk">${k}<span class="badge ${cl}">${lb}</span></div><div class="supv">${itemsH}</div></div>`;
+  }).join('');
+  const prosH=(s.pros||[]).map(p=>`<div class="pci">${p}</div>`).join('');
+  const consH=(s.cons||[]).map(c=>`<div class="pci">${c}</div>`).join('');
+  const summaryItems=Array.isArray(s.summary)?s.summary:(s.summary||'').split(/\n/g).map(x=>x.trim()).filter(Boolean);
+  const summaryH=summaryItems.map(n=>`<div class="pci sum-item">${n.replace(/\.$/,'')}</div>`).join('');
+  const noteItems=Array.isArray(s.note)?s.note:(s.note||'').split(/\n/g).map(x=>x.trim()).filter(Boolean);
+  const noteH=noteItems.map(n=>`<div class="pci note-item">${n.replace(/\.$/,'')}</div>`).join('');
+  
+  // Test objective block
+  const to=meta.testObjective;
+  const toH=to?`<div class="dps"><div class="dpsl">Potential Test Objective</div><div class="tobox">
+    <div class="torow"><div class="tok">Test Article</div><div class="tov">${to.article}</div></div>
+    <div class="torow"><div class="tok">Objective</div><div class="tov">${to.objective}</div></div>
+    <div class="torow" style="margin-bottom:0"><div class="tok">Go / No-Go Metric</div><div class="tov metric">${to.metric}</div></div>
+  </div></div>`:'';
+
+  document.getElementById('dpbody').innerHTML=`
+    ${s.url?`<div style="margin-bottom:12px"><a href="${s.url}" target="_blank" rel="noopener" style="font-size:11.5px;color:var(--bl);text-decoration:none;display:inline-flex;align-items:center;gap:4px">${s.url.replace(/https?:\/\/(www\.)?/,'').replace(/\/$/,'')} <span style="font-size:9px">↗</span></a></div>`:''}
+    <div class="dps"><div class="dpsl">Overview</div><div class="sum-list">${summaryH}</div></div>
+    ${toH}
+    <div class="dps"><div class="dpsl">Specs</div><div class="sgrid">${specH}</div></div>
+    ${supH?`<div class="dps"><div class="dpsl">Supply Chain & Test Capability</div><div class="supgrid">${supH}</div></div>`:''}
+    <div class="dps"><div class="dpsl">Pros / Cons</div><div class="pcg"><div class="pros"><div class="pclbl pros">Advantages</div>${prosH}</div><div class="cons"><div class="pclbl cons">Risks</div>${consH}</div></div></div>
+    ${noteH?`<div class="dps"><div class="dpsl">Potential / Recommended Next Steps</div><div class="note-list">${noteH}</div></div>`:''}`;
+}
+
+// ── MODAL ─────────────────────────────────────────────────
+let specCt=0,supCt=0;
+function openModal(mode,id){
+  editId=mode==='edit'?id:null;
+  const s=mode==='edit'?SITES.find(x=>x.id===id):null;
+  document.getElementById('mtitle').textContent=mode==='edit'?`Edit — ${s?.name||''}`:'Add New Site';
+  document.getElementById('mdelbt').style.display=mode==='edit'?'block':'none';
+  buildModalBody(s);document.getElementById('mover').classList.add('vis');
+}
+function closeModal(){document.getElementById('mover').classList.remove('vis');editId=null;}
+
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function specRow(i,k,v){const sc=typeof v==='object'?v.score||'':v===''?'':'';const vl=typeof v==='object'?v.val||'':v;return `<div id="sr${i}" style="display:grid;grid-template-columns:115px 1fr 72px 22px;gap:5px;align-items:center;margin-bottom:4px"><input class="fi" id="sk${i}" value="${esc(k)}" placeholder="Key" style="font-size:11px;padding:5px 7px"><input class="fi" id="sv${i}" value="${esc(vl)}" placeholder="Value" style="font-size:11px;padding:5px 7px"><select class="fsel" id="ss${i}" style="font-size:10px;padding:4px 5px"><option value="">—</option><option value="good" ${sc==='good'?'selected':''}>Good</option><option value="ok" ${sc==='ok'?'selected':''}>OK</option><option value="poor" ${sc==='poor'?'selected':''}>Poor</option></select><button class="libt rm" onclick="document.getElementById('sr${i}').remove()" style="height:26px">✕</button></div>`;}
+function supRow(i,k,v){const s=typeof v==='object'?v.score||'ok':'ok';const vl=typeof v==='object'?v.val||v:v;return `<div id="supr${i}" style="margin-bottom:7px"><div style="display:grid;grid-template-columns:160px 1fr 72px 22px;gap:5px;align-items:center"><input class="fi" id="spk${i}" value="${esc(k)}" placeholder="Supply item" style="font-size:11px;padding:5px 7px"><input class="fi" id="spv${i}" value="${esc(vl)}" placeholder="Vendor / logistics note" style="font-size:11px;padding:5px 7px"><select class="fsel" id="sps${i}" style="font-size:10px;padding:4px 5px"><option value="good" ${s==='good'?'selected':''}>Good</option><option value="ok" ${s==='ok'?'selected':''}>OK</option><option value="poor" ${s==='poor'?'selected':''}>Poor</option></select><button class="libt rm" onclick="document.getElementById('supr${i}').remove()" style="height:26px">✕</button></div></div>`;}
+function liItem(t,i,v){return `<div class="liitem" id="${t}li${i}"><textarea id="${t}${i}" rows="2">${esc(v)}</textarea><button class="libt rm" onclick="document.getElementById('${t}li${i}').remove()">✕</button></div>`;}
+
+function buildModalBody(s){
+  const d=s||{};
+  const specE=Object.entries(d.specs||{}).length?Object.entries(d.specs):
+    [['Acreage',''],['Grid',''],['Pop. Buffer',''],['Exhaust',''],['Access',''],['Land Cost','']];
+  const supE=Object.entries(d.supply||{}).length?Object.entries(d.supply):
+    [['Proton/Ion Beam (900keV+)',{val:'',score:'ok'}],['SiC/SiN DRIE + SOI Wafer Fab',{val:'',score:'ok'}],['High-Vacuum / Conflat Systems',{val:'',score:'ok'}],['NaK-77 + Inconel Machining',{val:'',score:'ok'}],['UHTC Aerogel Coating',{val:'',score:'ok'}],['SEM/AFM Post-Irradiation',{val:'',score:'ok'}],['Thermalization Validation',{val:'',score:'ok'}],['ΔP Test Infrastructure',{val:'',score:'ok'}]];
+  specCt=specE.length;supCt=supE.length;
+  const prosH=(d.pros||['']).map((p,i)=>liItem('pros',i,p)).join('');
+  const consH=(d.cons||['']).map((p,i)=>liItem('cons',i,p)).join('');
+  document.getElementById('mbody').innerHTML=`
+    <div class="fstitle">Basic Info</div>
+    <div class="frow2">
+      <div class="fg"><label class="flbl">Site Name</label><input class="fi" id="fn" value="${esc(d.name||'')}"></div>
+      <div class="fg"><label class="flbl">Location</label><input class="fi" id="floc" value="${esc(d.loc||'')}"></div>
+    </div>
+    <div class="frow2">
+      <div class="fg"><label class="flbl">Latitude</label><input class="fi" id="flat" type="number" step="0.001" value="${d.lat||''}"></div>
+      <div class="fg"><label class="flbl">Longitude</label><input class="fi" id="flng" type="number" step="0.001" value="${d.lng||''}"></div>
+    </div>
+    <div class="frow2">
+      <div class="fg"><label class="flbl">Category</label><select class="fsel" id="fcat">
+        <option value="greenfield" ${d.cat==='greenfield'?'selected':''}>Greenfield / Industrial</option>
+        <option value="military" ${d.cat==='military'?'selected':''}>Decommissioned Military</option>
+        <option value="lab" ${d.cat==='lab'?'selected':''}>National Lab / University</option>
+        <option value="partner" ${d.cat==='partner'?'selected':''}>Partner / Vendor</option>
+      </select></div>
+    </div>
+    <div class="fg full"><label class="flbl">Website URL</label><input class="fi" id="furl" value="${esc(d.url||'')}" placeholder="https://..."></div>
+    <div class="fg full"><label class="flbl">Summary <span style="font-weight:400;color:var(--txd)">(separate paragraphs with blank lines)</span></label><textarea class="fta" id="fsum" style="min-height:88px">${esc(Array.isArray(d.summary)?d.summary.join('\n\n'):d.summary||'')}</textarea></div>
+    <div class="fg full"><label class="flbl">Strategic Note <span style="font-weight:400;color:var(--txd)">(one per line)</span></label><textarea class="fta" id="fnote" style="min-height:66px">${esc(Array.isArray(d.note)?d.note.join('\n'):d.note||'')}</textarea></div>
+    <div class="fstitle">Specifications <button class="adli" onclick="addSpec()">+ add</button></div>
+    <div id="speccon">${specE.map(([k,v],i)=>specRow(i,k,v)).join('')}</div>
+    <div class="fstitle">Supply Chain &amp; Test Capability <button class="adli" onclick="addSup()">+ add</button></div>
+    <div id="supcon">${supE.map(([k,v],i)=>supRow(i,k,v)).join('')}</div>
+    <div class="fstitle">Pros &amp; Cons</div>
+    <div class="pcin">
+      <div><div class="flbl" style="color:var(--or);margin-bottom:5px">Advantages</div><div class="liw" id="proscon">${prosH}</div><button class="adli" onclick="addLi('pros')">+ add</button></div>
+      <div><div class="flbl" style="color:var(--rd);margin-bottom:5px">Risks / Drawbacks</div><div class="liw" id="conscon">${consH}</div><button class="adli" onclick="addLi('cons')">+ add</button></div>
+    </div>`;
+}
+
+function addSpec(){const i=specCt++;document.getElementById('speccon').insertAdjacentHTML('beforeend',specRow(i,'',''));}
+function addSup(){const i=supCt++;document.getElementById('supcon').insertAdjacentHTML('beforeend',supRow(i,'',{val:'',score:'ok'}));}
+function addLi(t){const c=document.getElementById(t+'con');const i=c.children.length;c.insertAdjacentHTML('beforeend',liItem(t,i,''));}
+
+function saveSite(){
+  const name=document.getElementById('fn')?.value?.trim();
+  const lat=parseFloat(document.getElementById('flat')?.value);
+  const lng=parseFloat(document.getElementById('flng')?.value);
+  if(!name){alert('Site name required.');return;}
+  if(isNaN(lat)||isNaN(lng)){alert('Valid lat/lng required.');return;}
+  const specs={};
+  document.querySelectorAll('[id^="sr"]').forEach(r=>{const i=r.id.slice(2);const k=document.getElementById('sk'+i)?.value?.trim();const v=document.getElementById('sv'+i)?.value?.trim();const sc=document.getElementById('ss'+i)?.value;if(k)specs[k]=sc?{val:v,score:sc}:v;});
+  const supply={};
+  document.querySelectorAll('[id^="supr"]').forEach(r=>{const i=r.id.slice(4);const k=document.getElementById('spk'+i)?.value?.trim();const v=document.getElementById('spv'+i)?.value?.trim();const sc=document.getElementById('sps'+i)?.value;if(k)supply[k]={val:v||'',score:sc||'ok'};});
+  const pros=[],cons=[];
+  document.querySelectorAll('[id^="pros"]:not(#proscon)').forEach(el=>{if(el.tagName==='TEXTAREA'&&el.value.trim())pros.push(el.value.trim());});
+  document.querySelectorAll('[id^="cons"]:not(#conscon)').forEach(el=>{if(el.tagName==='TEXTAREA'&&el.value.trim())cons.push(el.value.trim());});
+  const existing=editId?SITES.find(x=>x.id===editId):null;
+  const site={...(existing||{}),id:editId||(Date.now()),cat:document.getElementById('fcat')?.value||'greenfield',name,lat,lng,
+    loc:document.getElementById('floc')?.value?.trim()||'',
+    url:document.getElementById('furl')?.value?.trim()||'',
+    summary:(document.getElementById('fsum')?.value||'').split(/\n\s*\n/).map(s=>s.trim()).filter(Boolean),
+    note:(document.getElementById('fnote')?.value||'').split(/\n/).map(s=>s.trim()).filter(Boolean),specs,supply,pros,cons};
+  if(editId){const idx=SITES.findIndex(x=>x.id===editId);if(idx>=0)SITES[idx]=site;}else{SITES.push(site);}
+  saveSites(SITES);closeModal();rebuildMarkers();renderSidebar();
+  selId=site.id;selectSite(site.id);
+}
+
+// ── PLANNER ───────────────────────────────────────────────
+const CAPABILITIES=[
+  {id:'beam',label:'Ion Beam / Pelletron (900keV)',buyNote:'NMSU, UdeM, UCLA, Vanderbilt',buyCost:120000,buildLabel:'NEC Tandem Pelletron',buildCost:3500000},
+  {id:'drie',label:'DRIE / LPCVD a-SiN Fab',buyNote:'Sandia MESA, Cornell CNF, Caltech Kavli',buyCost:80000,buildLabel:'DRIE Tool + PECVD system',buildCost:2200000},
+  {id:'vakuum',label:'High-Vacuum Beamline System',buyNote:'Repurpose lab UHV; Kurt Lesker rental',buyCost:35000,buildLabel:'Custom beamline + turbo pumps',buildCost:350000},
+  {id:'nak',label:'NaK-77 Cooling Loop',buyNote:'WSTF WFO; Sandia materials lab',buyCost:90000,buildLabel:'Custom NaK loop + Inconel plumbing',buildCost:480000},
+  {id:'dp',label:'ΔP Test Stand (to 5 bar)',buyNote:'Build at UMD / Plattsburgh',buyCost:15000,buildLabel:'Custom pressure vessel + conflat',buildCost:95000},
+  {id:'sem',label:'SEM + AFM Characterization',buyNote:'EAG Labs commercial; campus SEM',buyCost:40000,buildLabel:'SEM + AFM system (used)',buildCost:750000},
+  {id:'aerogel',label:'UHTC Aerogel Coating',buyNote:'CHA Industries ALD; Caltech chem dept',buyCost:25000,buildLabel:'ALD system + sol-gel processing',buildCost:620000},
+  {id:'tunnel',label:'Hypersonic Wind Tunnel (Mach 5+)',buyNote:'AEDC / Sandia Mach 14; Holloman sled',buyCost:350000,buildLabel:'Custom Mach 5–8 blowdown tunnel',buildCost:15000000},
+  {id:'testcell',label:'Test Cell / Bay (shielded)',buyNote:'Plattsburgh SAC hangar; Stennis EUL',buyCost:60000,buildLabel:'Hardened test cell + rad shielding',buildCost:2500000},
+  {id:'power',label:'HV Power Infrastructure (>30 MW)',buyNote:'NYPA Plattsburgh; TVA AEDC; ERCOT TX',buyCost:25000,buildLabel:'Substation + transformer + switching',buildCost:12000000},
+  {id:'exhaust',label:'Exhaust / Flame Trench System',buyNote:'Stennis flame trench; Holloman range',buyCost:40000,buildLabel:'Custom exhaust duct + scrubber',buildCost:3200000},
+  {id:'cool',label:'Facility Cooling (DI water loop)',buyNote:'Stennis DI; AEDC TVA watershed',buyCost:20000,buildLabel:'Cooling tower + DI water plant',buildCost:1800000},
+  {id:'crane',label:'Heavy Lift / Test Article Handling',buyNote:'Existing base crane (military sites)',buyCost:8000,buildLabel:'Overhead crane + clean staging area',buildCost:450000},
+];
+let capSel=new Set();
+
+function fmt(n){if(n>=1e6)return`$${(n/1e6).toFixed(1)}M`;if(n>=1e3)return`$${(n/1e3).toFixed(0)}k`;return`$${n}`;}
+
+function renderPlanner(){
+  // Build vs buy caps — now editable
+  const buyEl=document.getElementById('buy-caps');
+  const buildEl=document.getElementById('build-caps');
+  buyEl.innerHTML=CAPABILITIES.map((cap,i)=>`
+    <div class="cap-row${capSel.has(cap.id)?' selected':''}" onclick="toggleCap('${cap.id}')">
+      <div class="cap-check${capSel.has(cap.id)?' on':''}">✓</div>
+      <div class="cap-label">${cap.label}</div>
+      <div class="cap-cost" onclick="event.stopPropagation();editCapCost(${i},'buy')" title="Click to edit" style="cursor:text">${fmt(cap.buyCost)}</div>
+      <div class="cap-del" onclick="event.stopPropagation();deleteCap(${i})" title="Remove capability">✕</div>
+    </div>`).join('')+`<div class="cap-row add-row" onclick="addCapRow()" style="justify-content:center;color:var(--bl);cursor:pointer;font-size:11px;opacity:.7">+ Add capability</div>`;
+  buildEl.innerHTML=CAPABILITIES.map((cap,i)=>`
+    <div class="cap-row${capSel.has(cap.id)?' selected':''}" onclick="toggleCap('${cap.id}')">
+      <div class="cap-check${capSel.has(cap.id)?' on':''}">✓</div>
+      <div class="cap-label">${cap.buildLabel}</div>
+      <div class="cap-cost" onclick="event.stopPropagation();editCapCost(${i},'build')" title="Click to edit" style="cursor:text">${fmt(cap.buildCost)}</div>
+      <div class="cap-del" onclick="event.stopPropagation();deleteCap(${i})" title="Remove capability">✕</div>
+    </div>`).join('');
+  updateBvbTotals();
+  renderTimeline();
+  renderLeadGrid();
+}
+
+function editCapCost(idx,side){
+  const cap=CAPABILITIES[idx];
+  const cur=side==='buy'?cap.buyCost:cap.buildCost;
+  const label=side==='buy'?cap.label:cap.buildLabel;
+  const input=prompt(`${label}\nEnter new ${side==='buy'?'access network':'custom build'} cost estimate ($):`,cur);
+  if(input===null)return;
+  const val=parseInt(input.replace(/[^0-9]/g,''),10);
+  if(isNaN(val))return;
+  if(side==='buy')cap.buyCost=val;else cap.buildCost=val;
+  renderPlanner();
+}
+
+function addCapRow(){
+  const label=prompt('Capability name (access network label):');
+  if(!label)return;
+  const buildLabel=prompt('Custom build label:',label)||label;
+  const buyCost=parseInt((prompt('Access network cost ($):','50000')||'0').replace(/[^0-9]/g,''),10)||0;
+  const buildCost=parseInt((prompt('Custom build capex ($):','500000')||'0').replace(/[^0-9]/g,''),10)||0;
+  const id='custom_'+Date.now();
+  CAPABILITIES.push({id,label,buyNote:'User-defined',buyCost,buildLabel,buildCost});
+  renderPlanner();
+}
+
+function deleteCap(idx){
+  const cap=CAPABILITIES[idx];
+  if(!confirm('Remove "'+cap.label+'" from the capability list?'))return;
+  capSel.delete(cap.id);
+  CAPABILITIES.splice(idx,1);
+  renderPlanner();
+}
+
+function toggleCap(id){capSel.has(id)?capSel.delete(id):capSel.add(id);renderPlanner();}
+
+function updateBvbTotals(){
+  let buyTotal=0,buildTotal=0;
+  CAPABILITIES.forEach(c=>{if(capSel.has(c.id)){buyTotal+=c.buyCost;buildTotal+=c.buildCost;}});
+  document.getElementById('buy-total').textContent=fmt(buyTotal);
+  document.getElementById('build-total').textContent=fmt(buildTotal);
+  const el=document.getElementById('bvb-verdict');
+  if(capSel.size===0){el.textContent='Select capabilities above to see the comparison.';return;}
+  const ratio=(buildTotal/buyTotal).toFixed(1);
+  const breakeven=Math.round(buildTotal/buyTotal*2);
+  el.innerHTML=`With the selected ${capSel.size} capabilities, access via the partner network costs <strong style="color:var(--bl)">${fmt(buyTotal)}</strong> over 24 months vs. <strong style="color:var(--or)">${fmt(buildTotal)}</strong> capex to own them. Custom build is ~${ratio}× the network cost — breakeven at roughly ${breakeven} months of active testing. ${buildTotal>2e6?'At this capex level, the custom route only makes financial sense if you anticipate running continuous campaigns for 3+ years or need capabilities not accessible via any partner.':'The custom build is within reach if you have a facility site and the capex lined up.'}`;
+}
+
+function renderTimeline(){
+  const phases=[
+    {p:1,label:'Phase 1 — Now to 12 months',color:'#5a8db5'},
+    {p:2,label:'Phase 2 — 12–24 months',color:'#d09028'},
+    {p:3,label:'Phase 3 — 24+ months',color:'#c04040'},
+  ];
+  const el=document.getElementById('timeline-render');
+  el.innerHTML='<div class="tl-line"></div>'+phases.map(ph=>{
+    const sites=SITES.filter(s=>(SITE_META[s.id]||{}).phase===ph.p);
+    const sitesH=sites.map(s=>{
+      const meta=SITE_META[s.id]||{};
+      const to=meta.testObjective||{};
+      return `<div class="tl-site" style="border-color:${ph.color}40"><span class="tl-site-name">${s.name}</span><span class="tl-site-obj">${(to.objective||'').substring(0,60)}${to.objective&&to.objective.length>60?'…':''}</span></div>`;
+    }).join('');
+    return `<div class="tl-phase">
+      <div class="tl-dot" style="background:${ph.color};border-color:${ph.color}"></div>
+      <div class="tl-phase-label" style="color:${ph.color}">${ph.label}</div>
+      <div class="tl-sites">${sitesH||'<div style="font-size:10px;color:var(--txd);padding:4px 0">No sites in this phase</div>'}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderLeadGrid(){
+  const el=document.getElementById('leadtime-grid');
+  const sorted=[...SITES].sort((a,b)=>((SITE_META[a.id]||{}).leadMonths||99)-((SITE_META[b.id]||{}).leadMonths||99));
+  el.innerHTML=sorted.map(s=>{
+    const meta=SITE_META[s.id]||{};
+    const c=CAT[s.cat]||{color:'#888'};
+    const ltColor=meta.leadMonths===0?'green':meta.leadMonths<=3?'green':meta.leadMonths<=12?'amber':'red';
+    const ltLabel=meta.leadMonths===0?'Available Now':meta.leadMonths<12?`${meta.leadMonths} mo lead`:meta.leadMonths===12?'12 mo lead':`${Math.round(meta.leadMonths/12)} yr lead`;
+    return `<div style="background:var(--sf2);padding:10px 12px;display:flex;flex-direction:column;gap:4px">
+      <div style="font-size:11px;font-weight:500;color:var(--txb)">${s.name}</div>
+      <div style="display:flex;gap:5px;align-items:center">
+        <span class="chip chip-${ltColor}">${ltLabel}</span>
+        <span class="chip" style="color:${c.color};border-color:${c.color}30;background:${c.color}12">${c.label||''}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── PROCUREMENT ───────────────────────────────────────────
+const PROC_ITEMS=[
+  {cat:'Ion Beam Access',item:'NMSU Tandem Pelletron Beam Time',vendor:'NMSU Materials Characterization Lab',cost:'$5–15k/campaign',lead:'2–4 wk scheduling',status:'todo',note:'Contact Dr. Valdez group; reference BWA irradiation requirements. Priority: confirm 900keV proton beam availability.'},
+  {cat:'Ion Beam Access',item:'Université de Montréal Pelletron Beam Time',vendor:'UdeM Tandem Accelerator Lab (6 MV)',cost:'$8–20k/campaign',lead:'4–8 wk scheduling',status:'todo',note:'East coast option for Plattsburgh-based campaigns. Confirm beam energy range and SOI sample compatibility.'},
+  {cat:'Ion Beam Access',item:'NEC Pelletron — Future Owned System',vendor:'National Electrostatics Corp (NEC), Middleton WI',cost:'$1.5–4M (new)',lead:'18–30 mo',status:'todo',note:'Call NEC to spec a system for custom facility. Ask about refurbished/demo units. Also request list of installed customers with underutilized beam time.'},
+  {cat:'DRIE & Thin Film Fab',item:'SiC BWA Die Fabrication — SOI Wafers',vendor:'Silson Ltd (UK)',cost:'$8–25k/batch',lead:'4–12 wk',status:'todo',note:'Send micropane geometry spec. Request RFQ for 100nm SiC on SOI; 50um and 100um pitch arrays on 12×12mm die.'},
+  {cat:'DRIE & Thin Film Fab',item:'a-SiN LPCVD/PECVD on SOI',vendor:'Cornell NanoScale Facility (CNF)',cost:'$3–8k/run',lead:'4–8 wk',status:'todo',note:'Cornell CNF is open-access with sponsored research agreement. Nearest LPCVD a-SiN capability to Plattsburgh facility. Contact for cleanroom time.'},
+  {cat:'DRIE & Thin Film Fab',item:'Al₂O₃ ALD Coating on SiC Membranes',vendor:'CHA Industries (Ithaca Space Systems)',cost:'$2–6k/run',lead:'2–4 wk',status:'todo',note:'10 min from Cornell CNF — combine fab + coating + SEM in single Ithaca trip. Contact for Al₂O₃ ALD on fragile 100nm SiC; confirm membrane handling protocol.'},
+  {cat:'DRIE & Thin Film Fab',item:'UHTC Aerogel Sputtering Protection Layer',vendor:'CHA Industries / Cabot Aerogel',cost:'$3–8k/batch',lead:'4–6 wk',status:'todo',note:'Sol-gel precursor from Cabot/Sigma; spin-on or PVD application at CHA. Characterize sputtering rate reduction on coated vs uncoated SiC die.'},
+  {cat:'Materials Characterization',item:'SEM + AFM Post-Irradiation Analysis',vendor:'Eurofins EAG Laboratories (Sunnyvale / NJ)',cost:'$2–5k/batch',lead:'2–3 wk (standard); 3–5 days (rush)',status:'todo',note:'Set up account before next irradiation campaign. Request: SEM surface morphology + AFM roughness on irradiated BWA die. Add RBS for H+ depth profiling in SiC.'},
+  {cat:'Materials Characterization',item:'RBS — H+ Implantation Depth Profile',vendor:'EAG Labs or Ion Beam Analysis (IBA) service',cost:'$3–6k/batch',lead:'3–4 wk',status:'todo',note:'Critical gap: closes quantitative comparison between SRIM predictions and actual H+ implantation depth. Validates BWA material selection for higher-energy fusion products.'},
+  {cat:'Vacuum & Pressure Hardware',item:'High-Vacuum Beamline Fixture (custom)',vendor:'Kurt Lesker Co. / MDC Vacuum / Nor-Cal Products',cost:'$25–75k',lead:'6–12 wk',status:'todo',note:'Custom conflat flange assembly for ΔP test stand. Spec to hold vacuum side at ~mTorr and pressure side to 3 bar. Kurt Lesker has design-assist service for custom UHV assemblies.'},
+  {cat:'Vacuum & Pressure Hardware',item:'Turbomolecular Pump + Controller',vendor:'Pfeiffer Vacuum / Edwards Vacuum',cost:'$8–20k',lead:'4–8 wk',status:'todo',note:'Pfeiffer HiPace 300 or equivalent for beamline rough-down. Edwards XDS dry scroll for backing pump. Both have distribution in LA and Northeast.'},
+  {cat:'NaK-77 System',item:'NaK-77 Eutectic (sodium-potassium alloy)',vendor:'Alfa Aesar / Sigma-Aldrich',cost:'$2–5k/kg',lead:'2–4 wk (inert atmosphere shipping)',status:'todo',note:'Requires inert atmosphere handling from receipt. Verify hazmat shipping compliance with facility before ordering. WSTF or Sandia consult recommended for handling protocol development.'},
+  {cat:'NaK-77 System',item:'Inconel 625 Tubing + Fittings for Cooling Loop',vendor:'Rolled Alloys / Specialty Metals Supply',cost:'$5–20k',lead:'4–8 wk',status:'todo',note:'Inconel 625 specified for NaK channels. Get quotes for 1/4" and 1/2" tubing + swagelok-compatible fittings. Confirm NaK compatibility of sealant and fitting material.'},
+  {cat:'Funding & Agreements',item:'AFRL SBIR Phase I Proposal',vendor:'AFRL Propulsion + Directed Energy Directorates',cost:'~$200k award',lead:'4–6 mo to award',status:'todo',note:'Submit to both Propulsion (FBCC combined cycle) and Directed Energy (particle beam window) topics. Published test results provide TRL 3→4 supporting data. Act before next solicitation cycle opens.'},
+  {cat:'Funding & Agreements',item:'Sandia MESA WFO Agreement',vendor:'Sandia National Laboratories',cost:'Negotiated per SOW',lead:'12–18 mo',status:'todo',note:'Initiate now — 12–18 mo is the realistic timeline. Focus scope on a-SiN LPCVD/PECVD fabrication first (lowest classification risk); aerogel co-development second.'},
+  {cat:'Funding & Agreements',item:'AEDC CRADA Application',vendor:'AEDC Arnold AFB / USAF',cost:'$200k–600k/day test access',lead:'24–48 mo',status:'todo',note:'Apply immediately using published test data as supporting documentation. 2–4 year waitlist means earliest arc-jet access is 2028 if you start in 2026.'},
+];
+const STATUS_CYCLE=['todo','active','done'];
+let procStatus={};
+
+function renderProcurement(){
+  const tbody=document.getElementById('proc-tbody');
+  let lastCat='';let html='';
+  PROC_ITEMS.forEach((item,idx)=>{
+    const st=procStatus[idx]||item.status;
+    if(item.cat!==lastCat){
+      html+=`<tr class="proc-cat-hdr"><td colspan="6">${item.cat}</td></tr>`;
+      lastCat=item.cat;
+    }
+    const stClass=st==='done'?'st-done':st==='active'?'st-active':'st-todo';
+    const stLabel=st==='done'?'Done':st==='active'?'In Progress':'To Do';
+    html+=`<tr>
+      <td><div class="proc-item proc-editable" onclick="editProcField(${idx},'item')" title="Click to edit">${item.item}</div></td>
+      <td><div class="proc-vendor proc-editable" onclick="editProcField(${idx},'vendor')" title="Click to edit">${item.vendor}</div></td>
+      <td><div class="proc-cost proc-editable" onclick="editProcField(${idx},'cost')" title="Click to edit">${item.cost}</div></td>
+      <td><div class="proc-lead proc-editable" onclick="editProcField(${idx},'lead')" title="Click to edit">${item.lead}</div></td>
+      <td onclick="cycleProcStatus(${idx})" style="cursor:pointer"><span class="proc-status ${stClass}">${stLabel}</span></td>
+      <td><div class="proc-note proc-editable" onclick="editProcField(${idx},'note')" title="Click to edit">${item.note}</div></td>
+    </tr>`;
+  });
+  html+=`<tr class="proc-add-row" onclick="addProcRow()"><td colspan="6" style="text-align:center;color:var(--bl);cursor:pointer;font-size:11px;padding:10px;opacity:.7">+ Add procurement item</td></tr>`;
+  tbody.innerHTML=html;
+}
+
+function editProcField(idx,field){
+  const item=PROC_ITEMS[idx];
+  const cur=item[field];
+  const input=prompt(`Edit ${field} for "${item.item}":`,cur);
+  if(input===null||input===cur)return;
+  item[field]=input;
+  renderProcurement();
+}
+
+function addProcRow(){
+  // Show inline add form instead of prompt chain
+  const existing=document.getElementById('proc-add-form');
+  if(existing){existing.remove();return;}
+  const cats=[...new Set(PROC_ITEMS.map(p=>p.cat))];
+  const form=document.createElement('tr');
+  form.id='proc-add-form';
+  form.innerHTML=`<td colspan="6" style="padding:0;border:2px solid var(--or)"><div style="padding:14px;background:var(--sf2)">
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--or);letter-spacing:.06em;text-transform:uppercase;margin-bottom:10px;font-weight:600">Add Procurement Item</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+      <div><label style="font-size:9px;color:var(--txd);display:block;margin-bottom:3px">CATEGORY</label>
+        <select id="pa-cat" style="width:100%;padding:6px 8px;background:var(--sf);border:1px solid var(--bdl);color:var(--txb);font-size:11px;font-family:'IBM Plex Mono',monospace">
+          ${cats.map(c=>`<option value="${c}">${c}</option>`).join('')}
+          <option value="__new__">+ New category...</option>
+        </select></div>
+      <div><label style="font-size:9px;color:var(--txd);display:block;margin-bottom:3px">ITEM NAME</label>
+        <input id="pa-item" style="width:100%;padding:6px 8px;background:var(--sf);border:1px solid var(--bdl);color:var(--txb);font-size:11px;font-family:'IBM Plex Mono',monospace;box-sizing:border-box" placeholder="e.g. Turbomolecular Pump"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px">
+      <div><label style="font-size:9px;color:var(--txd);display:block;margin-bottom:3px">VENDOR(S)</label>
+        <input id="pa-vendor" style="width:100%;padding:6px 8px;background:var(--sf);border:1px solid var(--bdl);color:var(--txb);font-size:11px;font-family:'IBM Plex Mono',monospace;box-sizing:border-box" placeholder="e.g. Pfeiffer Vacuum"></div>
+      <div><label style="font-size:9px;color:var(--txd);display:block;margin-bottom:3px">EST. COST</label>
+        <input id="pa-cost" style="width:100%;padding:6px 8px;background:var(--sf);border:1px solid var(--bdl);color:var(--txb);font-size:11px;font-family:'IBM Plex Mono',monospace;box-sizing:border-box" placeholder="e.g. $8–20k"></div>
+      <div><label style="font-size:9px;color:var(--txd);display:block;margin-bottom:3px">LEAD TIME</label>
+        <input id="pa-lead" style="width:100%;padding:6px 8px;background:var(--sf);border:1px solid var(--bdl);color:var(--txb);font-size:11px;font-family:'IBM Plex Mono',monospace;box-sizing:border-box" placeholder="e.g. 4–8 wk"></div>
+    </div>
+    <div style="margin-bottom:10px"><label style="font-size:9px;color:var(--txd);display:block;margin-bottom:3px">NOTES</label>
+      <input id="pa-note" style="width:100%;padding:6px 8px;background:var(--sf);border:1px solid var(--bdl);color:var(--txb);font-size:11px;font-family:'IBM Plex Mono',monospace;box-sizing:border-box" placeholder="Key context, next action, or dependency"></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button onclick="document.getElementById('proc-add-form').remove()" style="font-family:'IBM Plex Mono',monospace;font-size:9px;padding:5px 14px;background:transparent;border:1px solid var(--bdl);color:var(--txd);cursor:pointer">Cancel</button>
+      <button onclick="submitProcRow()" style="font-family:'IBM Plex Mono',monospace;font-size:9px;padding:5px 14px;background:var(--or);border:1px solid var(--or);color:#fff;cursor:pointer">Add Item</button>
+    </div>
+  </div></td>`;
+  document.getElementById('proc-tbody').appendChild(form);
+  form.scrollIntoView({behavior:'smooth',block:'nearest'});
+  // Handle "new category" option
+  document.getElementById('pa-cat').addEventListener('change',function(){
+    if(this.value==='__new__'){const nc=prompt('New category name:');if(nc){const opt=document.createElement('option');opt.value=nc;opt.textContent=nc;this.insertBefore(opt,this.lastElementChild);this.value=nc;}else{this.value=this.options[0].value;}}
+  });
+}
+function submitProcRow(){
+  const cat=document.getElementById('pa-cat')?.value;
+  const item=document.getElementById('pa-item')?.value?.trim();
+  if(!cat||!item){showToast('Category and item name required');return;}
+  PROC_ITEMS.push({
+    cat:cat==='__new__'?'Other':cat,
+    item,
+    vendor:document.getElementById('pa-vendor')?.value?.trim()||'TBD',
+    cost:document.getElementById('pa-cost')?.value?.trim()||'TBD',
+    lead:document.getElementById('pa-lead')?.value?.trim()||'TBD',
+    status:'todo',
+    note:document.getElementById('pa-note')?.value?.trim()||''
+  });
+  renderProcurement();
+  showToast('Item added');
+}
+
+function cycleProcStatus(idx){
+  const cur=procStatus[idx]||PROC_ITEMS[idx].status;
+  const next=STATUS_CYCLE[(STATUS_CYCLE.indexOf(cur)+1)%STATUS_CYCLE.length];
+  procStatus[idx]=next;
+  renderProcurement();
+}
+
+// ── DELETE ────────────────────────────────────────────────
+function startDelete(){if(editId)startDeleteSite(editId);}
+function startDeleteSite(id){
+  delId=id;const s=SITES.find(x=>x.id===id);
+  document.getElementById('cmsg').textContent=`"${s?.name||'This site'}" will be permanently removed.`;
+  document.getElementById('cover').classList.add('vis');
+}
+function closeCover(){document.getElementById('cover').classList.remove('vis');delId=null;}
+function doDelete(){
+  if(!delId)return;
+  SITES=SITES.filter(x=>x.id!==delId);saveSites(SITES);
+  closeCover();closeModal();
+  if(selId===delId){selId=null;document.getElementById('dp').classList.remove('vis');}
+  delId=null;rebuildMarkers();renderSidebar();
+}
+</script>
+</body>
+</html>
